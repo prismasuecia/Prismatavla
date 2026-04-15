@@ -1,0 +1,13 @@
+export type ModuleId =
+  | 'background'
+  | 'timer'
+  | 'turntaking'
+  | 'groups'
+  | 'instructioncards'
+  | 'trafficlight'
+  | 'randomizer'
+  | 'clock'
+  | 'seating'
+  | 'lessonplan'
+  | 'exitticket'
+  | 'soundmeter'
