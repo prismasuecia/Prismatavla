@@ -1,121 +1,229 @@
-import { useEffect, useMemo, useState } from 'react'
-import type { AppActions, TimerState } from '../state/AppStateProvider.tsx'
+import { useMemo, useState } from 'react'
+import { useBoardStore } from '../store/useBoardStore'
 
 const PRESETS = [1, 3, 5, 10, 15, 20, 30]
+const RADIUS = 88
+const CIRCUMFERENCE = 2 * Math.PI * RADIUS
 
-interface TimerModuleProps {
-  timer: TimerState
-  actions: AppActions['timer']
-}
-
-export function TimerModule({ timer, actions }: TimerModuleProps) {
+export function TimerModule() {
+  const timer = useBoardStore((state) => state.timer)
+  const actions = useBoardStore((state) => state.actions)
   const [customMinutes, setCustomMinutes] = useState(8)
 
-  useEffect(() => {
-    if (!timer.isRunning) {
-      return
-    }
-    const id = window.setInterval(() => {
-      actions.tick()
-    }, 1000)
-    return () => window.clearInterval(id)
-  }, [timer.isRunning, actions])
-
   const ring = useMemo(() => {
-    const radius = 86
-    const circumference = 2 * Math.PI * radius
-    const ratio = timer.durationSec === 0 ? 0 : timer.remainingSec / timer.durationSec
+    const ratio = timer.durationMs === 0 ? 0 : timer.remainingMs / timer.durationMs
     return {
-      radius,
-      circumference,
-      dashOffset: circumference * (1 - ratio),
+      dashOffset: CIRCUMFERENCE * (1 - ratio),
+      isWarning: timer.remainingMs <= 60000 && timer.isRunning,
     }
-  }, [timer.durationSec, timer.remainingSec])
+  }, [timer.durationMs, timer.remainingMs, timer.isRunning])
 
-  const minutesLeft = Math.floor(timer.remainingSec / 60)
-  const secondsLeft = timer.remainingSec % 60
-  const formattedClock = `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft
-    .toString()
-    .padStart(2, '0')}`
+  const minutesLeft = Math.floor(timer.remainingMs / 60000)
+  const secondsLeft = Math.floor((timer.remainingMs % 60000) / 1000)
+  const formattedTime = timer.remainingMs > 0
+    ? `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`
+    : timer.isRunning ? 'Klart' : '--:--'
+
+  const statusText = timer.isRunning
+    ? (ring.isWarning ? 'Snart klart' : 'Pågår')
+    : timer.remainingMs > 0 ? 'Pausad' : 'Redo'
 
   const applyPreset = (minutes: number) => {
-    const seconds = minutes * 60
-    actions.setDuration(seconds, `${minutes} min`, true)
+    actions.setTimerDuration(minutes * 60 * 1000)
   }
 
-  const handleCustomSet = (event: React.FormEvent) => {
-    event.preventDefault()
-    if (customMinutes <= 0) {
-      return
-    }
-    actions.setDuration(customMinutes * 60, `${customMinutes} min`, false)
+  const btnStyle = (active = false): React.CSSProperties => ({
+    padding: '5px 12px',
+    borderRadius: 'var(--radius-full)',
+    border: '1px solid var(--border-medium)',
+    background: active ? 'var(--accent-muted)' : 'transparent',
+    fontSize: 'var(--text-sm)',
+    fontWeight: active ? 500 : 400,
+    color: active ? 'var(--accent)' : 'var(--text-secondary)',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-sans)',
+    transition: 'all 120ms ease',
+  })
+
+  const primaryBtnStyle: React.CSSProperties = {
+    padding: '9px 24px',
+    borderRadius: 'var(--radius-full)',
+    border: 'none',
+    background: 'var(--accent)',
+    color: '#fff',
+    fontSize: 'var(--text-sm)',
+    fontWeight: 500,
+    cursor: 'pointer',
+    fontFamily: 'var(--font-sans)',
+    transition: 'background 120ms ease',
   }
+
+  const secondaryBtnStyle: React.CSSProperties = {
+    padding: '9px 18px',
+    borderRadius: 'var(--radius-full)',
+    border: '1px solid var(--border-medium)',
+    background: 'transparent',
+    color: 'var(--text-secondary)',
+    fontSize: 'var(--text-sm)',
+    cursor: 'pointer',
+    fontFamily: 'var(--font-sans)',
+    transition: 'all 120ms ease',
+  }
+
+  const currentPresetMinutes = timer.durationMs / 60000
 
   return (
-    <div className="module timer-module">
-      <header className="module-header">
-        <div>
-          <p className="eyebrow">Timer</p>
-          <h2>Strukturerad tid</h2>
-        </div>
-        <div className="preset-row" aria-label="Snabbval minuter">
-          {PRESETS.map((preset) => (
-            <button key={preset} type="button" onClick={() => applyPreset(preset)}>
-              {preset} min
-            </button>
-          ))}
-        </div>
-      </header>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 16px', gap: 16 }}>
 
-      <div className="timer-body">
-        <div className="ring">
-          <svg viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet" role="presentation">
-            <circle className="ring-track" cx="100" cy="100" r={ring.radius} />
-            <circle
-              className={`ring-progress ${timer.remainingSec <= 60 ? 'warning' : ''}`}
-              cx="100"
-              cy="100"
-              r={ring.radius}
-              strokeDasharray={ring.circumference}
-              strokeDashoffset={ring.dashOffset}
-            />
-          </svg>
-          <div className="ring-label">
-            <span>{timer.label}</span>
-            <strong>{formattedClock}</strong>
-          </div>
-        </div>
+      {/* SVG Ring */}
+      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <svg
+          viewBox="0 0 200 200"
+          width={200}
+          height={200}
+          style={{ transform: 'rotate(-90deg)' }}
+          role="presentation"
+        >
+          {/* Spår */}
+          <circle
+            cx={100}
+            cy={100}
+            r={RADIUS}
+            fill="none"
+            stroke="var(--timer-track)"
+            strokeWidth={14}
+          />
+          {/* Progress */}
+          <circle
+            cx={100}
+            cy={100}
+            r={RADIUS}
+            fill="none"
+            stroke={ring.isWarning ? 'var(--timer-warning)' : 'var(--timer-fill)'}
+            strokeWidth={ring.isWarning ? 18 : 14}
+            strokeLinecap="round"
+            strokeDasharray={CIRCUMFERENCE}
+            strokeDashoffset={ring.dashOffset}
+            style={{ transition: 'stroke-dashoffset 1000ms linear, stroke-width 300ms ease, stroke 300ms ease' }}
+          />
+        </svg>
 
-        <div className="timer-actions">
-          <div className="button-row">
-            <button type="button" onClick={() => actions.start()} disabled={timer.isRunning}>
-              Starta
-            </button>
-            <button type="button" onClick={() => actions.pause()} disabled={!timer.isRunning}>
-              Pausa
-            </button>
-            <button type="button" onClick={() => actions.reset()}>
-              Nollställ
-            </button>
-          </div>
-          <form className="custom-duration" onSubmit={handleCustomSet}>
-            <label>
-              Egen tid (min)
-              <input
-                type="number"
-                min={1}
-                max={180}
-                value={customMinutes}
-                onChange={(event) => setCustomMinutes(Number(event.target.value))}
-              />
-            </label>
-            <button type="submit">Ställ in</button>
-          </form>
-          <p className="micro-copy">
-            Ringen blir tjockare vid 60 sekunder kvar som en diskret påminnelse utan ljud eller
-            blinkningar.
-          </p>
+        {/* Centertext */}
+        <div style={{
+          position: 'absolute',
+          textAlign: 'center',
+          pointerEvents: 'none',
+        }}>
+          <span style={{
+            display: 'block',
+            fontFamily: 'var(--font-mono)',
+            fontSize: 30,
+            fontWeight: 400,
+            color: 'var(--text-primary)',
+            letterSpacing: '-0.02em',
+            lineHeight: 1,
+          }}>
+            {formattedTime}
+          </span>
+          <span style={{
+            display: 'block',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-tertiary)',
+            marginTop: 6,
+            fontFamily: 'var(--font-sans)',
+          }}>
+            {statusText}
+          </span>
         </div>
+      </div>
+
+      {/* Preset-knappar */}
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {PRESETS.map(min => (
+          <button
+            key={min}
+            type="button"
+            onClick={() => applyPreset(min)}
+            style={btnStyle(currentPresetMinutes === min)}
+          >
+            {min} min
+          </button>
+        ))}
+      </div>
+
+      {/* Kontrollknappar */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+        {!timer.isRunning ? (
+          <button
+            type="button"
+            onClick={() => actions.startTimer()}
+            disabled={timer.remainingMs === 0}
+            style={{ ...primaryBtnStyle, opacity: timer.remainingMs === 0 ? 0.4 : 1 }}
+          >
+            Starta
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => actions.pauseTimer()}
+            style={primaryBtnStyle}
+          >
+            Pausa
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => actions.resetTimer()}
+          style={secondaryBtnStyle}
+        >
+          Nollställ
+        </button>
+      </div>
+
+      {/* Egen tid */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        padding: '10px 14px',
+        background: 'var(--surface-secondary)',
+        borderRadius: 'var(--radius-md)',
+        width: '100%',
+      }}>
+        <label style={{
+          fontSize: 'var(--text-sm)',
+          color: 'var(--text-secondary)',
+          fontFamily: 'var(--font-sans)',
+          whiteSpace: 'nowrap',
+        }}>
+          Egna minuter
+        </label>
+        <input
+          type="number"
+          min={1}
+          max={180}
+          value={customMinutes}
+          onChange={(e) => setCustomMinutes(Number(e.target.value))}
+          style={{
+            flex: 1,
+            border: '1px solid var(--border-medium)',
+            borderRadius: 'var(--radius-sm)',
+            background: 'var(--surface-primary)',
+            padding: '5px 8px',
+            fontSize: 'var(--text-sm)',
+            fontFamily: 'var(--font-sans)',
+            color: 'var(--text-primary)',
+            outline: 'none',
+            width: 56,
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => applyPreset(customMinutes)}
+          style={secondaryBtnStyle}
+        >
+          Sätt
+        </button>
       </div>
     </div>
   )
