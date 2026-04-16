@@ -29,8 +29,10 @@ export function TimerModule() {
     : timer.remainingMs > 0 ? 'Pausad' : 'Redo'
 
   const applyPreset = (minutes: number) => {
-    actions.setTimerDuration(minutes * 60 * 1000)
+    actions.setTimerDuration(minutes * 60)
   }
+
+  const currentPresetMinutes = timer.durationMs / 60000
 
   const btnStyle = (active = false): React.CSSProperties => ({
     padding: '5px 12px',
@@ -45,7 +47,7 @@ export function TimerModule() {
     transition: 'all 120ms ease',
   })
 
-  const primaryBtnStyle: React.CSSProperties = {
+  const primaryBtn: React.CSSProperties = {
     padding: '9px 24px',
     borderRadius: 'var(--radius-full)',
     border: 'none',
@@ -58,7 +60,7 @@ export function TimerModule() {
     transition: 'background 120ms ease',
   }
 
-  const secondaryBtnStyle: React.CSSProperties = {
+  const secondaryBtn: React.CSSProperties = {
     padding: '9px 18px',
     borderRadius: 'var(--radius-full)',
     border: '1px solid var(--border-medium)',
@@ -70,35 +72,15 @@ export function TimerModule() {
     transition: 'all 120ms ease',
   }
 
-  const currentPresetMinutes = timer.durationMs / 60000
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 16px', gap: 16 }}>
 
       {/* SVG Ring */}
       <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <svg
-          viewBox="0 0 200 200"
-          width={200}
-          height={200}
-          style={{ transform: 'rotate(-90deg)' }}
-          role="presentation"
-        >
-          {/* Spår */}
+        <svg viewBox="0 0 200 200" width={200} height={200} style={{ transform: 'rotate(-90deg)' }} role="presentation">
+          <circle cx={100} cy={100} r={RADIUS} fill="none" stroke="var(--timer-track)" strokeWidth={14} />
           <circle
-            cx={100}
-            cy={100}
-            r={RADIUS}
-            fill="none"
-            stroke="var(--timer-track)"
-            strokeWidth={14}
-          />
-          {/* Progress */}
-          <circle
-            cx={100}
-            cy={100}
-            r={RADIUS}
-            fill="none"
+            cx={100} cy={100} r={RADIUS} fill="none"
             stroke={ring.isWarning ? 'var(--timer-warning)' : 'var(--timer-fill)'}
             strokeWidth={ring.isWarning ? 18 : 14}
             strokeLinecap="round"
@@ -107,31 +89,11 @@ export function TimerModule() {
             style={{ transition: 'stroke-dashoffset 1000ms linear, stroke-width 300ms ease, stroke 300ms ease' }}
           />
         </svg>
-
-        {/* Centertext */}
-        <div style={{
-          position: 'absolute',
-          textAlign: 'center',
-          pointerEvents: 'none',
-        }}>
-          <span style={{
-            display: 'block',
-            fontFamily: 'var(--font-mono)',
-            fontSize: 30,
-            fontWeight: 400,
-            color: 'var(--text-primary)',
-            letterSpacing: '-0.02em',
-            lineHeight: 1,
-          }}>
+        <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
+          <span style={{ display: 'block', fontFamily: 'var(--font-mono)', fontSize: 30, fontWeight: 400, color: 'var(--text-primary)', letterSpacing: '-0.02em', lineHeight: 1 }}>
             {formattedTime}
           </span>
-          <span style={{
-            display: 'block',
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-tertiary)',
-            marginTop: 6,
-            fontFamily: 'var(--font-sans)',
-          }}>
+          <span style={{ display: 'block', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', marginTop: 6, fontFamily: 'var(--font-sans)' }}>
             {statusText}
           </span>
         </div>
@@ -140,12 +102,7 @@ export function TimerModule() {
       {/* Preset-knappar */}
       <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
         {PRESETS.map(min => (
-          <button
-            key={min}
-            type="button"
-            onClick={() => applyPreset(min)}
-            style={btnStyle(currentPresetMinutes === min)}
-          >
+          <button key={min} type="button" onClick={() => applyPreset(min)} style={btnStyle(currentPresetMinutes === min)}>
             {min} min
           </button>
         ))}
@@ -154,76 +111,27 @@ export function TimerModule() {
       {/* Kontrollknappar */}
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         {!timer.isRunning ? (
-          <button
-            type="button"
-            onClick={() => actions.startTimer()}
-            disabled={timer.remainingMs === 0}
-            style={{ ...primaryBtnStyle, opacity: timer.remainingMs === 0 ? 0.4 : 1 }}
-          >
+          <button type="button" onClick={() => actions.startTimer()} disabled={timer.remainingMs === 0}
+            style={{ ...primaryBtn, opacity: timer.remainingMs === 0 ? 0.4 : 1 }}>
             Starta
           </button>
         ) : (
-          <button
-            type="button"
-            onClick={() => actions.pauseTimer()}
-            style={primaryBtnStyle}
-          >
-            Pausa
-          </button>
+          <button type="button" onClick={() => actions.pauseTimer()} style={primaryBtn}>Pausa</button>
         )}
-        <button
-          type="button"
-          onClick={() => actions.resetTimer()}
-          style={secondaryBtnStyle}
-        >
-          Nollställ
-        </button>
+        <button type="button" onClick={() => actions.resetTimer()} style={secondaryBtn}>Nollställ</button>
       </div>
 
       {/* Egen tid */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '10px 14px',
-        background: 'var(--surface-secondary)',
-        borderRadius: 'var(--radius-md)',
-        width: '100%',
-      }}>
-        <label style={{
-          fontSize: 'var(--text-sm)',
-          color: 'var(--text-secondary)',
-          fontFamily: 'var(--font-sans)',
-          whiteSpace: 'nowrap',
-        }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', background: 'var(--surface-secondary)', borderRadius: 'var(--radius-md)', width: '100%' }}>
+        <label style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap' }}>
           Egna minuter
         </label>
         <input
-          type="number"
-          min={1}
-          max={180}
-          value={customMinutes}
+          type="number" min={1} max={180} value={customMinutes}
           onChange={(e) => setCustomMinutes(Number(e.target.value))}
-          style={{
-            flex: 1,
-            border: '1px solid var(--border-medium)',
-            borderRadius: 'var(--radius-sm)',
-            background: 'var(--surface-primary)',
-            padding: '5px 8px',
-            fontSize: 'var(--text-sm)',
-            fontFamily: 'var(--font-sans)',
-            color: 'var(--text-primary)',
-            outline: 'none',
-            width: 56,
-          }}
+          style={{ flex: 1, border: '1px solid var(--border-medium)', borderRadius: 'var(--radius-sm)', background: 'var(--surface-primary)', padding: '5px 8px', fontSize: 'var(--text-sm)', fontFamily: 'var(--font-sans)', color: 'var(--text-primary)', outline: 'none', width: 56 }}
         />
-        <button
-          type="button"
-          onClick={() => applyPreset(customMinutes)}
-          style={secondaryBtnStyle}
-        >
-          Sätt
-        </button>
+        <button type="button" onClick={() => applyPreset(customMinutes)} style={secondaryBtn}>Sätt</button>
       </div>
     </div>
   )
