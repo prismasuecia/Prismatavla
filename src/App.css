@@ -1,7 +1,7 @@
 /* =============================================
-   PRISMA TAVLA – App.css
-   Design Brief v1.0 | April 2026
-   Klassnamn matchar komponentkoden exakt
+   PRISMA TAVLA – App.css v2.0
+   Filosofi: Bo Bergström × Apple × Montessori × NPF
+   Luft. Stillhet. Materialkänsla.
    ============================================= */
 
 /* === CANVAS === */
@@ -15,7 +15,6 @@
   color: var(--text-primary);
 }
 
-/* === MODULE LAYER === */
 .module-layer {
   position: absolute;
   inset: 0;
@@ -30,19 +29,10 @@
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  color: var(--text-primary);
-  font-family: var(--font-sans);
   overflow: hidden;
-  transition: box-shadow 200ms ease, border-color 200ms ease;
-  will-change: transform;
-  animation: module-enter 180ms ease forwards;
+  font-family: var(--font-sans);
 }
 
-.module-window.is-active {
-  box-shadow: var(--shadow-lg), 0 0 0 1.5px var(--accent-muted);
-}
-
-/* Fullscreen */
 .module-window-fullscreen {
   position: fixed !important;
   top: 46% !important;
@@ -50,15 +40,12 @@
   transform: translate(-50%, -50%) !important;
   width: min(1100px, 92vw) !important;
   max-height: 90vh !important;
-  height: auto !important;
   border-radius: var(--radius-xl) !important;
-  box-shadow: var(--shadow-lg), 0 20px 60px rgba(40, 30, 20, 0.18) !important;
-  background: var(--surface-primary) !important;
-  overflow: hidden !important;
+  box-shadow: var(--shadow-lg), 0 20px 60px rgba(40,30,20,0.18) !important;
   z-index: 9999 !important;
 }
 
-/* === MODULE HEADER === */
+/* === MODULE HEADER — KRITISKT: inget som bryter drag === */
 .module-header {
   display: flex;
   justify-content: space-between;
@@ -69,16 +56,17 @@
   background: var(--surface-primary);
   user-select: none;
   flex-shrink: 0;
-  gap: 8px;
   min-height: 44px;
+  /* VIKTIGT: pointer-events: auto — aldrig none */
+  pointer-events: auto;
 }
 
 .module-header:active {
   cursor: grabbing;
 }
 
-/* Titeln i headern */
-.module-header > span:first-of-type {
+/* Titeltext i header */
+.module-header > span:first-child {
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--text-secondary);
@@ -87,24 +75,23 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  pointer-events: none;
 }
 
 .module-header strong {
   font-weight: 500;
   color: var(--text-secondary);
   font-size: var(--text-sm);
-  letter-spacing: 0.01em;
 }
 
-/* Header-knappar container */
-.module-header > div:last-child {
+/* Knappar i header */
+.module-header > div {
   display: flex;
   gap: 2px;
   align-items: center;
   flex-shrink: 0;
 }
 
-/* Alla knappar i module-header */
 .module-header button {
   width: 28px;
   height: 28px;
@@ -116,9 +103,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background var(--transition-fast), color var(--transition-fast);
   padding: 0;
   flex-shrink: 0;
+  pointer-events: auto;
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .module-header button:hover {
@@ -126,9 +114,8 @@
   color: var(--text-primary);
 }
 
-/* Stäng-knappen (sista) */
 .module-header button:last-child:hover {
-  background: rgba(180, 60, 50, 0.10);
+  background: rgba(180,60,50,0.10);
   color: #B43C32;
 }
 
@@ -138,50 +125,42 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  color: var(--text-primary);
 }
 
-.module-content::-webkit-scrollbar {
-  width: 4px;
-}
+.module-content::-webkit-scrollbar { width: 4px; }
+.module-content::-webkit-scrollbar-track { background: transparent; }
+.module-content::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: var(--radius-full); }
 
-.module-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.module-content::-webkit-scrollbar-thumb {
-  background: var(--border-medium);
+/* === CHIP === */
+.module-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px 7px 10px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-full);
-}
-
-/* === MODULE RESIZE HANDLES === */
-.module-resize {
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-family: var(--font-sans);
+  white-space: nowrap;
   position: absolute;
-  background: transparent;
+  transition: all var(--transition-fast);
 }
 
-.module-resize-right {
-  right: 0;
-  top: 0;
-  width: 6px;
-  height: 100%;
-  cursor: ew-resize;
+.module-chip:hover {
+  background: var(--surface-hover);
+  box-shadow: var(--shadow-md);
 }
 
-.module-resize-bottom {
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 6px;
-  cursor: ns-resize;
-}
-
-.module-resize-diagonal {
-  bottom: 0;
-  right: 0;
-  width: 16px;
-  height: 16px;
-  cursor: nwse-resize;
+.module-chip svg {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+  flex-shrink: 0;
 }
 
 /* === DOCK === */
@@ -196,26 +175,21 @@
   padding: 8px 12px 16px;
   background: var(--surface-primary);
   border-top: 1px solid var(--border-subtle);
-  box-shadow: 0 -2px 16px rgba(40, 30, 20, 0.08);
+  box-shadow: 0 -2px 16px rgba(40,30,20,0.08);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
   width: 100%;
   overflow-x: auto;
   scrollbar-width: none;
-  white-space: nowrap;
   z-index: 100;
   transition: transform var(--transition-slow);
 }
 
-.dock::-webkit-scrollbar {
-  display: none;
-}
+.dock::-webkit-scrollbar { display: none; }
 
-/* Projektorläge - dölj docken */
 .dock[data-visible="false"] {
   transform: translateX(-50%) translateY(100%);
 }
 
-/* Dock item (button) */
 .dock-item {
   display: inline-flex;
   flex-direction: column;
@@ -226,26 +200,18 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  transition: background var(--transition-fast);
   min-width: 56px;
   position: relative;
   font-family: var(--font-sans);
   color: var(--text-secondary);
   flex-shrink: 0;
+  transition: background var(--transition-fast);
 }
 
-.dock-item:hover {
-  background: var(--surface-hover);
-}
+.dock-item:hover { background: var(--surface-hover); }
 
-/* Aktiv dock item */
-.dock-item[data-active="true"] {
-  background: var(--accent-muted);
-}
-
-.dock-item[data-active="true"] svg {
-  color: var(--accent);
-}
+.dock-item[data-active="true"] { background: var(--accent-muted); }
+.dock-item[data-active="true"] svg { color: var(--accent); }
 
 .dock-item[data-active="true"]::after {
   content: '';
@@ -259,17 +225,14 @@
   background: var(--accent);
 }
 
-/* Ikon i dock */
 .dock-item svg {
   width: 22px;
   height: 22px;
   color: var(--text-secondary);
   stroke-width: 1.75;
   transition: color var(--transition-fast);
-  flex-shrink: 0;
 }
 
-/* Label i dock */
 .dock-item span {
   font-size: var(--text-xs);
   color: var(--text-tertiary);
@@ -279,12 +242,7 @@
   font-family: var(--font-sans);
 }
 
-/* Projector-knapp i docken */
-.dock-item.dock-projector-btn[data-active="true"] {
-  background: var(--accent-muted);
-}
-
-/* === TRAFFIC BADGE (övre vänster chip) === */
+/* === TRAFIKLJUS BADGE === */
 .traffic-badge {
   position: fixed;
   top: 16px;
@@ -292,16 +250,14 @@
   padding: 9px 16px 11px;
   border-radius: var(--radius-lg);
   cursor: pointer;
-  transition: background var(--transition-base), transform var(--transition-fast);
   z-index: 200;
   min-width: 80px;
   font-family: var(--font-sans);
   user-select: none;
+  transition: transform var(--transition-fast);
 }
 
-.traffic-badge:hover {
-  transform: scale(1.02);
-}
+.traffic-badge:hover { transform: scale(1.02); }
 
 .traffic-badge span {
   font-size: var(--text-xs);
@@ -321,332 +277,132 @@
   color: #fff;
 }
 
-.traffic-tyst {
-  background: var(--status-tyst);
-}
+.traffic-tyst { background: var(--status-tyst); }
+.traffic-viska { background: var(--status-viska); }
+.traffic-prata { background: var(--status-prata); }
 
-.traffic-viska {
-  background: var(--status-viska);
-}
+/* === MODUL-INRE STILAR === */
 
-.traffic-prata {
-  background: var(--status-prata);
-}
-
-/* === CHIP (minimerat modul) === */
-.module-chip {
+/* Alla knappar i moduler */
+.mod-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px 7px 10px;
-  background: var(--surface-primary);
-  border: 1px solid var(--border-subtle);
+  padding: 8px 18px;
   border-radius: var(--radius-full);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
+  border: 1px solid var(--border-medium);
+  background: transparent;
   font-size: var(--text-sm);
-  color: var(--text-secondary);
   font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
   font-family: var(--font-sans);
+  transition: all var(--transition-fast);
   white-space: nowrap;
-  position: absolute;
 }
 
-.module-chip:hover {
-  background: var(--surface-hover);
-  box-shadow: var(--shadow-md);
+.mod-btn:hover { background: var(--surface-hover); }
+
+.mod-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
 }
 
-.module-chip svg {
-  width: 14px;
-  height: 14px;
-  color: var(--accent);
-  flex-shrink: 0;
+.mod-btn-primary:hover { background: var(--accent-light); }
+
+.mod-btn-sm {
+  padding: 5px 12px;
+  font-size: var(--text-xs);
 }
 
-/* === GENERISKA LISTOR === */
-.module-list-row {
+/* Sektion med luft */
+.mod-section {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mod-section + .mod-section {
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Rubrik inuti modul */
+.mod-label {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-family: var(--font-sans);
+}
+
+/* Stor display-text */
+.mod-display {
+  font-size: var(--text-2xl);
+  font-weight: 300;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  text-align: center;
+}
+
+/* Namnkort (elev-chip) */
+.mod-name-card {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 16px;
+  background: var(--surface-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  cursor: default;
+}
+
+/* Rad med val-knappar (pill-group) */
+.mod-pill-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Listrad */
+.mod-list-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 13px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-  user-select: none;
-}
-
-.module-list-row:last-child {
-  border-bottom: none;
-}
-
-.module-list-row:hover {
-  background: var(--surface-hover);
-}
-
-.module-list-row.selected {
-  background: var(--accent-muted);
-}
-
-.module-list-row.selected .row-label {
-  color: var(--accent);
-  font-weight: 500;
-}
-
-.row-label {
-  font-size: var(--text-base);
-  color: var(--text-primary);
-  font-weight: 400;
-}
-
-.row-sublabel {
-  font-size: var(--text-sm);
-  color: var(--text-tertiary);
-}
-
-/* === ANIMATIONER === */
-@keyframes module-enter {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-/* === PROJEKTORLÄGE === */
-.projector-mode .dock {
-  transform: translateX(-50%) translateY(100%);
-}
-
-.projector-mode:hover .dock,
-.projector-mode .dock:focus-within {
-  transform: translateX(-50%) translateY(0);
-}
-
-.projector-mode .traffic-badge {
-  font-size: var(--text-xl);
-  padding: 14px 28px 16px;
-  border-radius: var(--radius-xl);
-}
-
-/* === MODUL-SPECIFIKA STILAR === */
-
-/* Bakgrund-modulen */
-.background-module {
-  padding: 0;
-}
-
-/* Instruktion */
-.instruction-presets {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
   padding: 12px 16px;
   border-bottom: 1px solid var(--border-subtle);
-  align-items: center;
-}
-
-.instruction-preset-btn {
-  padding: 6px 14px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-medium);
-  background: transparent;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-sans);
-}
-
-.instruction-preset-btn:hover {
-  background: var(--surface-hover);
-}
-
-.instruction-preset-btn.active,
-.instruction-preset-btn[data-active="true"] {
-  background: var(--accent);
-  border-color: transparent;
-  color: #fff;
-}
-
-.lock-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px 5px 8px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-medium);
-  background: transparent;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-size: var(--text-xs);
-  color: var(--text-tertiary);
-  font-family: var(--font-sans);
-  margin-left: auto;
-}
-
-.lock-toggle:hover {
-  background: var(--surface-hover);
-}
-
-.lock-toggle.locked,
-.lock-toggle[data-locked="true"] {
-  background: var(--accent-muted);
-  border-color: transparent;
-  color: var(--accent);
-  font-weight: 500;
-}
-
-.instruction-textarea {
-  width: 100%;
-  border: none;
-  background: transparent;
-  resize: none;
-  font-family: var(--font-sans);
-  font-size: var(--text-base);
-  line-height: 1.65;
-  color: var(--text-primary);
-  padding: 16px;
-  outline: none;
-  min-height: 160px;
-  flex: 1;
-}
-
-.instruction-textarea::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* Timer */
-.timer-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 20px 16px 16px;
-  gap: 16px;
-}
-
-.timer-presets {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.timer-preset-btn {
-  padding: 5px 13px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-medium);
-  background: transparent;
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-weight: 500;
-  font-family: var(--font-sans);
-}
-
-.timer-preset-btn:hover,
-.timer-preset-btn.selected,
-.timer-preset-btn[data-selected="true"] {
-  background: var(--accent-muted);
-  border-color: transparent;
-  color: var(--accent);
-}
-
-.timer-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.timer-btn-primary {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 9px 24px;
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: 500;
   cursor: pointer;
   transition: background var(--transition-fast);
   font-family: var(--font-sans);
 }
 
-.timer-btn-primary:hover {
-  background: var(--accent-light);
+.mod-list-row:last-child { border-bottom: none; }
+.mod-list-row:hover { background: var(--surface-hover); }
+.mod-list-row.selected { background: var(--accent-muted); }
+.mod-list-row.selected .mod-list-label { color: var(--accent); font-weight: 500; }
+
+.mod-list-label {
+  font-size: var(--text-base);
+  color: var(--text-primary);
 }
 
-.timer-btn-secondary {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-medium);
-  padding: 9px 18px;
-  border-radius: var(--radius-full);
+.mod-list-sub {
   font-size: var(--text-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-sans);
+  color: var(--text-tertiary);
 }
 
-.timer-btn-secondary:hover {
-  background: var(--surface-hover);
-}
-
-/* === SITTPLATS === */
-.seating-module {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1rem;
-}
-
-.seating-module .control-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  align-items: flex-end;
-}
-
-/* === GENERELLA KNAPPAR I MODULER === */
-.module-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 16px;
-  border-radius: var(--radius-full);
-  border: 1px solid var(--border-medium);
-  background: transparent;
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  font-family: var(--font-sans);
-}
-
-.module-btn:hover {
-  background: var(--surface-hover);
-}
-
-.module-btn.primary {
-  background: var(--accent);
-  color: #fff;
-  border-color: transparent;
-}
-
-.module-btn.primary:hover {
-  background: var(--accent-light);
-}
-
-/* === INPUT FIELDS I MODULER === */
-.module-input {
+/* Input */
+.mod-input {
   width: 100%;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-md);
   background: var(--surface-secondary);
@@ -657,26 +413,79 @@
   transition: border-color var(--transition-fast);
 }
 
-.module-input:focus {
-  border-color: var(--accent);
-  background: var(--surface-primary);
-}
+.mod-input:focus { border-color: var(--accent); background: var(--surface-primary); }
+.mod-input::placeholder { color: var(--text-tertiary); }
 
-.module-input::placeholder {
-  color: var(--text-tertiary);
-}
-
-/* === SECTION HEADERS I MODULER === */
-.module-section-header {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--text-tertiary);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 12px 16px 6px;
-}
-
-/* === PADDING HELPER === */
-.module-padded {
+/* Textarea */
+.mod-textarea {
+  width: 100%;
+  border: none;
+  background: transparent;
+  resize: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.65;
+  color: var(--text-primary);
   padding: 16px;
+  outline: none;
+  flex: 1;
 }
+
+.mod-textarea::placeholder { color: var(--text-tertiary); }
+.mod-textarea:disabled { color: var(--text-tertiary); cursor: default; }
+
+/* Tom-state meddelande */
+.mod-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 24px;
+  text-align: center;
+  flex: 1;
+}
+
+.mod-empty-text {
+  font-size: var(--text-base);
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+/* Projektorläge */
+.projector-mode .dock {
+  transform: translateX(-50%) translateY(100%);
+}
+.projector-mode:hover .dock,
+.projector-mode .dock:focus-within {
+  transform: translateX(-50%) translateY(0);
+}
+
+.projector-exit {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  z-index: 200;
+  opacity: 0;
+  transition: opacity var(--transition-base);
+}
+
+.projector-mode:hover .projector-exit { opacity: 1; }
+
+/* Animationer */
+@keyframes module-enter {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.module-window { animation: module-enter 180ms ease forwards; }
