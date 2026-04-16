@@ -190,7 +190,7 @@ interface ModuleWindowShellProps {
 
 function ModuleWindowShell({ title, children, onMinimize, onClose, onToggleFullscreen, isFullscreen, supportsFullscreen }: ModuleWindowShellProps) {
   return (
-    <>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <header className="module-header">
         <span>{title}</span>
         <div>
@@ -200,13 +200,13 @@ function ModuleWindowShell({ title, children, onMinimize, onClose, onToggleFulls
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';(e.currentTarget as HTMLElement).style.color='var(--text-tertiary)'}}
           ><Minus size={14} aria-hidden="true" /></button>
           {supportsFullscreen && onToggleFullscreen && (
-            <button type="button" aria-label={isFullscreen ? 'Avsluta helskärm' : 'Helskärm'} onClick={onToggleFullscreen}
+            <button type="button" aria-label={isFullscreen ? 'Avsluta helskÃ¤rm' : 'HelskÃ¤rm'} onClick={onToggleFullscreen}
               style={{ width:28, height:28, border:'none', background:'transparent', borderRadius:'var(--radius-sm)', color:'var(--text-tertiary)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}
               onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='var(--surface-hover)';(e.currentTarget as HTMLElement).style.color='var(--text-primary)'}}
               onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';(e.currentTarget as HTMLElement).style.color='var(--text-tertiary)'}}
             >{isFullscreen ? <Minimize2 size={14} aria-hidden="true"/> : <Maximize2 size={14} aria-hidden="true"/>}</button>
           )}
-          <button type="button" aria-label="Stäng" onClick={onClose}
+          <button type="button" aria-label="StÃ¤ng" onClick={onClose}
             style={{ width:28, height:28, border:'none', background:'transparent', borderRadius:'var(--radius-sm)', color:'var(--text-tertiary)', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', padding:0 }}
             onMouseEnter={e=>{(e.currentTarget as HTMLElement).style.background='rgba(180,60,50,0.10)';(e.currentTarget as HTMLElement).style.color='#B43C32'}}
             onMouseLeave={e=>{(e.currentTarget as HTMLElement).style.background='transparent';(e.currentTarget as HTMLElement).style.color='var(--text-tertiary)'}}
@@ -214,6 +214,6 @@ function ModuleWindowShell({ title, children, onMinimize, onClose, onToggleFulls
         </div>
       </header>
       <div className="module-content">{children}</div>
-    </>
+    </div>
   )
 }
