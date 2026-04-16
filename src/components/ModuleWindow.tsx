@@ -50,29 +50,30 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       }
 
   const handleRestore = () => actions.restoreModule(layout.moduleId)
-  const handleToggleFullscreen = config.supportsFullscreen ? () => actions.toggleModuleFullscreen(layout.moduleId) : undefined
-  const handleClose = () => actions.closeModule(layout.moduleId)
   const handleMinimize = () => actions.minimizeModule(layout.moduleId)
-  const handleBringToFront = () => actions.bringModuleToFront(layout.moduleId)
+  const handleClose = () => actions.closeModule(layout.moduleId)
+  const handleToggleFullscreen = () => actions.toggleModuleFullscreen(layout.moduleId)
+  const handleBringToFront = () => actions.bringToFront(layout.moduleId)
 
   if (layout.minimized) {
     return (
       <div
         className="module-chip"
-        style={{ left: layout.position.x, top: layout.position.y, zIndex: layout.zIndex }}
+        style={{
+          left: layout.position?.x ?? 100,
+          top: layout.position?.y ?? 100,
+          zIndex: layout.zIndex,
+        }}
+        onClick={handleRestore}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') handleRestore()
+        }}
         role="button"
         tabIndex={0}
-        onClick={handleRestore}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            handleRestore()
-          }
-        }}
+        aria-label={`${config.title}${chipLabel ? `: ${chipLabel}` : ''}. Klicka för att återöppna.`}
       >
-        <span>{config.title}</span>
-        {chipLabel && <strong>{chipLabel}</strong>}
-        <Maximize2 aria-hidden="true" size={16} />
+        <config.icon size={14} aria-hidden="true" />
+        <span>{config.title}{chipLabel && <strong style={{ marginLeft: 4 }}>{chipLabel}</strong>}</span>
       </div>
     )
   }
@@ -123,13 +124,13 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     <Rnd
       className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
       style={{ zIndex: layout.zIndex }}
+      position={layout.position ?? { x: 100, y: 100 }}
       size={currentSize}
-      position={layout.position}
       minWidth={MIN_WIDTH}
       minHeight={MIN_HEIGHT}
       maxWidth={viewportLimits.maxWidth}
       maxHeight={viewportLimits.maxHeight}
-      bounds="window"
+      bounds="parent"
       disableDragging={isLocked}
       enableResizing={isLocked ? disabledHandles : RESIZE_HANDLES}
       resizeHandleComponent={resizeHandles}
@@ -139,9 +140,9 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         if (isLocked) return
         actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: data.x, y: data.y } })
       }}
-      onDragStop={(_event, data) =>
+      onDragStop={(_event, data) => {
         actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: data.x, y: data.y } })
-      }
+      }}
       onResize={(_event, _direction, ref, _delta, position) => {
         if (isLocked) return
         const nextPosition = position ?? layout.position
@@ -170,6 +171,44 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
   )
 }
 
+const disabledHandles = {
+  top: false,
+  topRight: false,
+  right: false,
+  bottomRight: false,
+  bottom: false,
+  bottomLeft: false,
+  left: false,
+  topLeft: false,
+}
+
+interface ViewportLimits {
+  maxWidth: number
+  maxHeight: number
+}
+
+const getViewportLimits = (): ViewportLimits => {
+  if (typeof window === 'undefined') {
+    return { maxWidth: 1200, maxHeight: 800 }
+  }
+  return {
+    maxWidth: Math.max(MIN_WIDTH, Math.floor(window.innerWidth * 0.9)),
+    maxHeight: Math.max(MIN_HEIGHT, Math.floor(window.innerHeight * 0.9)),
+  }
+}
+
+function useViewportLimits() {
+  const [limits, setLimits] = useState<ViewportLimits>(() => getViewportLimits())
+
+  useEffect(() => {
+    const handleResize = () => setLimits(getViewportLimits())
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  return limits
+}
+
 interface ModuleWindowShellProps {
   title: string
   children: ReactNode
@@ -190,65 +229,75 @@ function ModuleWindowShell({
   supportsFullscreen,
 }: ModuleWindowShellProps) {
   return (
-    <div className="module-surface">
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       <header className="module-header">
-        <strong>{title}</strong>
-        <div className="module-actions">
-          <button type="button" aria-label="Minimera" onClick={onMinimize}>
-            <Minus size={16} aria-hidden="true" />
+        <span style={{
+          fontSize: 'var(--text-sm)',
+          fontWeight: 500,
+          color: 'var(--text-secondary)',
+          letterSpacing: '0.01em',
+          flex: 1,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          fontFamily: 'var(--font-sans)',
+        }}>
+          {title}
+        </span>
+        <div style={{ display: 'flex', gap: '2px', alignItems: 'center', flexShrink: 0 }}>
+          <button
+            type="button"
+            aria-label="Minimera"
+            onClick={onMinimize}
+            style={{
+              width: 28, height: 28, border: 'none', background: 'transparent',
+              borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', padding: 0, transition: 'background 120ms ease, color 120ms ease',
+              fontFamily: 'var(--font-sans)',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-hover)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; }}
+          >
+            <Minus size={14} aria-hidden="true" />
           </button>
           {supportsFullscreen && onToggleFullscreen && (
-            <button type="button" aria-label={isFullscreen ? 'Avsluta helskärm' : 'Visa helskärm'} onClick={onToggleFullscreen}>
-              {isFullscreen ? <Minimize2 size={16} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
+            <button
+              type="button"
+              aria-label={isFullscreen ? 'Avsluta helskärm' : 'Visa helskärm'}
+              onClick={onToggleFullscreen}
+              style={{
+                width: 28, height: 28, border: 'none', background: 'transparent',
+                borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer', padding: 0, transition: 'background 120ms ease, color 120ms ease',
+              }}
+              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--surface-hover)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary)'; }}
+              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; }}
+            >
+              {isFullscreen ? <Minimize2 size={14} aria-hidden="true" /> : <Maximize2 size={14} aria-hidden="true" />}
             </button>
           )}
-          <button type="button" aria-label="Stäng" onClick={onClose}>
-            <X size={16} aria-hidden="true" />
+          <button
+            type="button"
+            aria-label="Stäng"
+            onClick={onClose}
+            style={{
+              width: 28, height: 28, border: 'none', background: 'transparent',
+              borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', padding: 0, transition: 'background 120ms ease, color 120ms ease',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(180,60,50,0.10)'; (e.currentTarget as HTMLButtonElement).style.color = '#B43C32'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'transparent'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-tertiary)'; }}
+          >
+            <X size={14} aria-hidden="true" />
           </button>
         </div>
       </header>
-      <div className="module-content">{children}</div>
+      <div className="module-content">
+        {children}
+      </div>
     </div>
   )
-}
-
-const disabledHandles = {
-  top: false,
-  topRight: false,
-  right: false,
-  bottomRight: false,
-  bottom: false,
-  bottomLeft: false,
-  left: false,
-  topLeft: false,
-}
-
-interface ViewportLimits {
-  maxWidth: number
-  maxHeight: number
-}
-
-const getViewportLimits = (): ViewportLimits => {
-  if (typeof window === 'undefined') {
-    return {
-      maxWidth: 1200,
-      maxHeight: 800,
-    }
-  }
-  return {
-    maxWidth: Math.max(MIN_WIDTH, Math.floor(window.innerWidth * 0.9)),
-    maxHeight: Math.max(MIN_HEIGHT, Math.floor(window.innerHeight * 0.9)),
-  }
-}
-
-function useViewportLimits() {
-  const [limits, setLimits] = useState<ViewportLimits>(() => getViewportLimits())
-
-  useEffect(() => {
-    const handleResize = () => setLimits(getViewportLimits())
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  return limits
 }
