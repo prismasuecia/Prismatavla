@@ -10,8 +10,12 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc -b",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "postdeploy": "echo 'Deployment to prismasuecia.github.io/Prismatavla complete!'"
   },
+  "homepage": "https://prismasuecia.github.io/Prismatavla/",
   "dependencies": {
     "clsx": "^2.1.1",
     "html2canvas": "^1.4.1",
@@ -33,6 +37,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "gh-pages": "^6.3.0",
     "globals": "^17.3.0",
     "playwright": "^1.58.2",
     "prettier": "^3.8.1",
