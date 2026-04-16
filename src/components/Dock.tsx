@@ -8,7 +8,7 @@ import type { ModuleId } from '../modules/moduleTypes'
 interface DockToolBase {
   id: string
   label: string
-  icon: ComponentType<{ size?: number }>
+  icon: ComponentType<{ size?: number; strokeWidth?: number }>
 }
 
 interface DockModuleTool extends DockToolBase {
@@ -73,8 +73,9 @@ export function Dock({ isVisible, onPointerEnter, onPointerLeave }: DockProps) {
               data-active={projectorMode ? 'true' : 'false'}
               onClick={() => actions.toggleProjector()}
               aria-pressed={projectorMode}
+              style={{ cursor: 'pointer' }}
             >
-              <Icon size={24} aria-hidden="true" />
+              <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
               <span>{tool.label}</span>
             </button>
           )
@@ -91,8 +92,9 @@ export function Dock({ isVisible, onPointerEnter, onPointerLeave }: DockProps) {
             data-active={isActive ? 'true' : 'false'}
             onClick={() => handleModuleClick(tool.module)}
             aria-pressed={isActive}
+            style={{ cursor: 'pointer' }}
           >
-            <Icon size={24} aria-hidden="true" />
+            <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
             <span>{tool.label}</span>
           </button>
         )
