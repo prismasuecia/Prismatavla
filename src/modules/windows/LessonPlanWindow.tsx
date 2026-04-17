@@ -3,148 +3,124 @@ import { useBoardStore, type LessonPhase } from '../../store/useBoardStore'
 import type { ModuleId } from '../moduleTypes'
 import { MODULE_CONFIG_MAP } from '../moduleRegistry'
 
-const TARGETABLE_MODULES: ModuleId[] = ['timer', 'turntaking', 'groups', 'instructioncards', 'randomizer']
+const TEMPLATES = {
+  'Genomgång + Övning': [
+    { title: 'Genomgång', durationMin: 15, targetModuleId: 'timer' as ModuleId },
+    { title: 'Parövning', durationMin: 10, targetModuleId: 'groups' as ModuleId },
+    { title: 'Redovisning', durationMin: 10, targetModuleId: 'turntaking' as ModuleId },
+  ],
+  'Diskussionslektion': [
+    { title: 'Introduktion', durationMin: 5, targetModuleId: 'timer' as ModuleId },
+    { title: 'Gruppdiskussion', durationMin: 15, targetModuleId: 'groups' as ModuleId },
+    { title: 'Helklass', durationMin: 10, targetModuleId: 'turntaking' as ModuleId },
+    { title: 'Exit ticket', durationMin: 5, targetModuleId: 'exitticket' as ModuleId },
+  ],
+}
 
 export function LessonPlanWindow() {
   const lessonPlan = useBoardStore((state) => state.lessonPlan)
-  const moduleWindows = useBoardStore((state) => state.moduleWindows)
   const actions = useBoardStore((state) => state.actions)
-  const targetOptions = useMemo(() => TARGETABLE_MODULES.map((id) => MODULE_CONFIG_MAP[id]).filter(Boolean), [])
 
-  if (!lessonPlan) {
-    return (
-      <div className="panel-card">
-        <p className="eyebrow">Lektionsplan</p>
-        <p>Initialiserar lektionsfaser...</p>
-      </div>
-    )
-  }
+  if (!lessonPlan) return null
 
-  const totalMinutes = lessonPlan.phases.reduce((sum, phase) => sum + phase.minutes, 0)
-  const doneMinutes = lessonPlan.phases.filter((phase) => phase.done).reduce((sum, phase) => sum + phase.minutes, 0)
-  const progress = totalMinutes === 0 ? 0 : Math.min(1, doneMinutes / totalMinutes)
+  const phases = lessonPlan.phases ?? []
+  const activeId = lessonPlan.activePhaseId
+  const totalMin = phases.reduce((sum, p) => sum + (p.durationMin ?? 0), 0)
 
-  const handleActivate = (phase: LessonPhase) => {
-    actions.setActiveLessonPhase(phase.id)
-    const moduleId = phase.targetModuleId
-    if (moduleWindows.windowsById[moduleId]) {
-      actions.restoreModule(moduleId)
-    } else {
-      actions.openModule(moduleId)
-    }
-  }
-
-  const handleMinutesChange = (phaseId: string, value: string) => {
-    const minutes = Number(value)
-    if (Number.isNaN(minutes)) {
-      return
-    }
-    actions.updateLessonPhase(phaseId, { minutes })
-  }
+  const s = (extra?: React.CSSProperties): React.CSSProperties => ({
+    fontFamily: 'var(--font-sans)',
+    ...extra,
+  })
 
   return (
-    <div className="lesson-plan-window">
-      <header className="lesson-plan-header">
-        <div>
-          <p className="eyebrow">Lektionsfaser</p>
-          <h2>Plan för tavlan</h2>
-        </div>
-        <div className="lesson-plan-actions">
-          <button
-            type="button"
-            className="toolbar-btn outline"
-            onClick={() => actions.setLessonPlanProgress(!lessonPlan.showProgress)}
-          >
-            {lessonPlan.showProgress ? 'Göm progress' : 'Visa progress'}
-          </button>
-          <button type="button" className="toolbar-btn outline" onClick={actions.applyLessonPlanTemplate}>
-            75-min mall
-          </button>
-          <button type="button" className="toolbar-btn" onClick={actions.addLessonPhase}>
-            Ny fas
-          </button>
-        </div>
-      </header>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
 
-      {lessonPlan.showProgress && (
-        <div className="lesson-plan-progress">
-          <div className="lesson-plan-progress-bar" aria-hidden="true">
-            <span style={{ width: `${progress * 100}%` }} />
+      {/* Mallar */}
+      <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={s({ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginRight: 2 })}>Mall:</span>
+        {Object.keys(TEMPLATES).map(name => (
+          <button key={name} type="button"
+            onClick={() => actions.applyLessonPlanTemplate(TEMPLATES[name as keyof typeof TEMPLATES])}
+            style={s({ padding: '5px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 120ms ease' })}>
+            {name}
+          </button>
+        ))}
+        <div style={s({ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' })}>
+          {totalMin} min
+        </div>
+      </div>
+
+      {/* Faser */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
+        {phases.length === 0 ? (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-tertiary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', padding: 32, textAlign: 'center' }}>
+            Välj en mall ovan eller lägg till faser manuellt
           </div>
-          <span>
-            {doneMinutes} / {totalMinutes} min klara
-          </span>
-        </div>
-      )}
-
-      <div className="lesson-plan-body">
-        {lessonPlan.phases.map((phase, index) => {
-          const isActive = lessonPlan.activePhaseId === phase.id
+        ) : phases.map((phase, i) => {
+          const isActive = phase.id === activeId
           return (
-            <article key={phase.id} className="lesson-phase" data-active={isActive} data-done={phase.done}>
-              <header className="lesson-phase-header">
-                <div className="lesson-phase-index">{index + 1}</div>
+            <div key={phase.id}
+              onClick={() => actions.setActiveLessonPhase(phase.id)}
+              style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                padding: '12px 16px',
+                borderBottom: '1px solid var(--border-subtle)',
+                background: isActive ? 'var(--accent-muted)' : 'transparent',
+                cursor: 'pointer',
+                transition: 'background 120ms ease',
+              }}>
+              {/* Fas-nummer */}
+              <div style={{
+                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
+                background: isActive ? 'var(--accent)' : 'var(--surface-secondary)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 'var(--text-xs)', fontWeight: 600,
+                color: isActive ? '#fff' : 'var(--text-tertiary)',
+                fontFamily: 'var(--font-sans)',
+              }}>
+                {phase.done ? '✓' : i + 1}
+              </div>
+
+              {/* Titel */}
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <input
-                  type="text"
-                  value={phase.name}
-                  onChange={(event) => actions.updateLessonPhase(phase.id, { name: event.target.value })}
-                  aria-label={`Namn för fas ${index + 1}`}
+                  value={phase.title}
+                  onChange={(e) => actions.updateLessonPhase({ id: phase.id, title: e.target.value })}
+                  onClick={(e) => e.stopPropagation()}
+                  style={s({ border: 'none', background: 'transparent', fontSize: 'var(--text-sm)', fontWeight: isActive ? 600 : 400, color: isActive ? 'var(--accent)' : 'var(--text-primary)', outline: 'none', width: '100%' })}
                 />
-                <button type="button" className="ghost-btn" onClick={() => actions.removeLessonPhase(phase.id)}>
-                  Ta bort
-                </button>
-              </header>
-              <div className="lesson-phase-grid">
-                <label>
-                  Minuter
-                  <input
-                    type="number"
-                    min={1}
-                    max={180}
-                    value={phase.minutes}
-                    onChange={(event) => handleMinutesChange(phase.id, event.target.value)}
-                  />
-                </label>
-                <label>
-                  Målmodul
-                  <select
-                    value={phase.targetModuleId}
-                    onChange={(event) =>
-                      actions.updateLessonPhase(phase.id, { targetModuleId: event.target.value as ModuleId })
-                    }
-                  >
-                    {targetOptions.map((option) => (
-                      <option key={option.id} value={option.id}>
-                        {option.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
               </div>
-              <div className="lesson-phase-footer">
-                <button type="button" className="toolbar-btn outline" onClick={() => handleActivate(phase)}>
-                  Aktivera fas
-                </button>
-                <button
-                  type="button"
-                  className="toolbar-btn"
-                  onClick={() => actions.toggleLessonPhaseDone(phase.id)}
-                >
-                  {phase.done ? 'Markera pågående' : 'Markera färdig'}
-                </button>
+
+              {/* Tid */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                <input
+                  type="number"
+                  value={phase.durationMin ?? ''}
+                  onChange={(e) => actions.updateLessonPhase({ id: phase.id, durationMin: Number(e.target.value) })}
+                  onClick={(e) => e.stopPropagation()}
+                  style={s({ width: 40, border: 'none', background: 'transparent', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', textAlign: 'right', outline: 'none' })}
+                />
+                <span style={s({ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' })}>min</span>
               </div>
-            </article>
+
+              {/* Ta bort */}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); actions.removeLessonPhase(phase.id); }}
+                style={{ width: 24, height: 24, border: 'none', background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, borderRadius: 4, padding: 0 }}
+              >×</button>
+            </div>
           )
         })}
+      </div>
 
-        {!lessonPlan.phases.length && (
-          <div className="lesson-plan-empty">
-            <p>Lägg till faser för att visa hur lektionen växlar mellan modulerna.</p>
-            <button type="button" className="toolbar-btn" onClick={actions.addLessonPhase}>
-              Lägg till första fasen
-            </button>
-          </div>
-        )}
+      {/* Botten */}
+      <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: 8 }}>
+        <button type="button"
+          onClick={() => actions.addLessonPhase({ title: 'Ny fas', durationMin: 10 })}
+          style={s({ padding: '7px 16px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', cursor: 'pointer', flex: 1 })}>
+          + Lägg till fas
+        </button>
       </div>
     </div>
   )
