@@ -133,7 +133,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       disableDragging={isLocked}
       enableResizing={isLocked ? disabledHandles : RESIZE_HANDLES}
       resizeHandleComponent={resizeHandles}
-      dragHandleClassName="module-header" cancel=".module-content,.module-actions,button,input,textarea,select"
+      cancel=".module-content,button,input,textarea,select,a"
       onMouseDown={handleBringToFront}
       onDrag={(_event, data) => {
         if (isLocked) return
@@ -198,11 +198,11 @@ function ModuleWindowShell({
             <Minus size={16} aria-hidden="true" />
           </button>
           {supportsFullscreen && onToggleFullscreen && (
-            <button type="button" aria-label={isFullscreen ? 'Avsluta helskÃÂÃÂÃÂÃÂ¤rm' : 'Visa helskÃÂÃÂÃÂÃÂ¤rm'} onClick={onToggleFullscreen}>
+            <button type="button" aria-label={isFullscreen ? 'Avsluta helskÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤rm' : 'Visa helskÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤rm'} onClick={onToggleFullscreen}>
               {isFullscreen ? <Minimize2 size={16} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
             </button>
           )}
-          <button type="button" aria-label="StÃÂÃÂÃÂÃÂ¤ng" onClick={onClose}>
+          <button type="button" aria-label="StÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤ng" onClick={onClose}>
             <X size={16} aria-hidden="true" />
           </button>
         </div>
