@@ -1,7 +1,5 @@
-import { useMemo } from 'react'
 import { useBoardStore, type LessonPhase } from '../../store/useBoardStore'
 import type { ModuleId } from '../moduleTypes'
-import { MODULE_CONFIG_MAP } from '../moduleRegistry'
 
 const TEMPLATES = {
   'Genomgång + Övning': [
@@ -20,12 +18,10 @@ const TEMPLATES = {
 export function LessonPlanWindow() {
   const lessonPlan = useBoardStore((state) => state.lessonPlan)
   const actions = useBoardStore((state) => state.actions)
+  const phases: LessonPhase[] = lessonPlan?.phases ?? []
+  const activeId = lessonPlan?.activePhaseId
 
-  if (!lessonPlan) return null
-
-  const phases = lessonPlan.phases ?? []
-  const activeId = lessonPlan.activePhaseId
-  const totalMin = phases.reduce((sum, p) => sum + (p.durationMin ?? 0), 0)
+  const totalMin = phases.reduce((s, p) => s + (p.durationMin ?? 0), 0)
 
   const s = (extra?: React.CSSProperties): React.CSSProperties => ({
     fontFamily: 'var(--font-sans)',
@@ -36,89 +32,126 @@ export function LessonPlanWindow() {
     <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
 
       {/* Mallar */}
-      <div style={{ padding: '12px 14px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
-        <span style={s({ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', marginRight: 2 })}>Mall:</span>
+      <div style={{ padding: '12px 14px 10px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span style={s({ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em' })}>Mall</span>
         {Object.keys(TEMPLATES).map(name => (
-          <button key={name} type="button"
+          <button
+            key={name}
+            type="button"
             onClick={() => actions.applyLessonPlanTemplate(TEMPLATES[name as keyof typeof TEMPLATES])}
-            style={s({ padding: '5px 12px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', transition: 'all 120ms ease' })}>
+            style={s({
+              padding: '5px 12px',
+              borderRadius: 'var(--radius-full)',
+              border: '1px solid var(--border-medium)',
+              background: 'transparent',
+              fontSize: 'var(--text-sm)',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+            })}
+          >
             {name}
           </button>
         ))}
-        <div style={s({ marginLeft: 'auto', fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' })}>
+        <span style={s({ marginLeft: 'auto', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' })}>
           {totalMin} min
-        </div>
+        </span>
       </div>
 
       {/* Faser */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
+      <div style={{ flex: 1, overflowY: 'auto' }}>
         {phases.length === 0 ? (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-tertiary)', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', padding: 32, textAlign: 'center' }}>
-            Välj en mall ovan eller lägg till faser manuellt
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 32 }}>
+            <span style={s({ color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)', textAlign: 'center', lineHeight: 1.6 })}>
+              Välj en mall ovan eller lägg till faser
+            </span>
           </div>
-        ) : phases.map((phase, i) => {
-          const isActive = phase.id === activeId
-          return (
-            <div key={phase.id}
-              onClick={() => actions.setActiveLessonPhase(phase.id)}
-              style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                padding: '12px 16px',
-                borderBottom: '1px solid var(--border-subtle)',
-                background: isActive ? 'var(--accent-muted)' : 'transparent',
-                cursor: 'pointer',
-                transition: 'background 120ms ease',
-              }}>
-              {/* Fas-nummer */}
-              <div style={{
-                width: 28, height: 28, borderRadius: '50%', flexShrink: 0,
-                background: isActive ? 'var(--accent)' : 'var(--surface-secondary)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 'var(--text-xs)', fontWeight: 600,
-                color: isActive ? '#fff' : 'var(--text-tertiary)',
-                fontFamily: 'var(--font-sans)',
-              }}>
-                {phase.done ? '✓' : i + 1}
-              </div>
+        ) : (
+          phases.map((phase, i) => {
+            const isActive = phase.id === activeId
+            return (
+              <div
+                key={phase.id}
+                onClick={() => actions.setActiveLessonPhase(phase.id)}
+                style={s({
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '13px 16px',
+                  borderBottom: i < phases.length - 1 ? '1px solid var(--border-subtle)' : 'none',
+                  background: isActive ? 'var(--accent-muted)' : 'transparent',
+                  cursor: 'pointer',
+                  gap: 12,
+                  transition: 'background 120ms ease',
+                })}
+              >
+                {/* Nummer */}
+                <span style={s({
+                  width: 24, height: 24,
+                  borderRadius: '50%',
+                  background: isActive ? 'var(--accent)' : 'var(--surface-secondary)',
+                  color: isActive ? '#fff' : 'var(--text-tertiary)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 'var(--text-xs)', fontWeight: 600,
+                  flexShrink: 0,
+                })}>
+                  {i + 1}
+                </span>
 
-              {/* Titel */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <input
-                  value={phase.title}
-                  onChange={(e) => actions.updateLessonPhase({ id: phase.id, title: e.target.value })}
-                  onClick={(e) => e.stopPropagation()}
-                  style={s({ border: 'none', background: 'transparent', fontSize: 'var(--text-sm)', fontWeight: isActive ? 600 : 400, color: isActive ? 'var(--accent)' : 'var(--text-primary)', outline: 'none', width: '100%' })}
-                />
-              </div>
+                {/* Titel */}
+                <span style={s({
+                  flex: 1,
+                  fontSize: 'var(--text-base)',
+                  fontWeight: isActive ? 500 : 400,
+                  color: isActive ? 'var(--accent)' : 'var(--text-primary)',
+                })}>
+                  {phase.title}
+                </span>
 
-              {/* Tid */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
-                <input
-                  type="number"
-                  value={phase.durationMin ?? ''}
-                  onChange={(e) => actions.updateLessonPhase({ id: phase.id, durationMin: Number(e.target.value) })}
-                  onClick={(e) => e.stopPropagation()}
-                  style={s({ width: 40, border: 'none', background: 'transparent', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', textAlign: 'right', outline: 'none' })}
-                />
-                <span style={s({ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)' })}>min</span>
-              </div>
+                {/* Tid */}
+                <span style={s({ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)' })}>
+                  {phase.durationMin} min
+                </span>
 
-              {/* Ta bort */}
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); actions.removeLessonPhase(phase.id); }}
-                style={{ width: 24, height: 24, border: 'none', background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, borderRadius: 4, padding: 0 }}
-              >×</button>
-            </div>
-          )
-        })}
+                {/* Ta bort */}
+                <button
+                  type="button"
+                  onClick={e => { e.stopPropagation(); actions.removeLessonPhase(phase.id); }}
+                  style={s({
+                    width: 24, height: 24,
+                    border: 'none', background: 'transparent',
+                    color: 'var(--text-tertiary)',
+                    cursor: 'pointer', borderRadius: 'var(--radius-sm)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 16, lineHeight: 1,
+                    flexShrink: 0,
+                  })}
+                >
+                  ×
+                </button>
+              </div>
+            )
+          })
+        )}
       </div>
 
-      {/* Botten */}
-      <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: 8 }}>
-        <button type="button"
-          onClick={() => actions.addLessonPhase({ title: 'Ny fas', durationMin: 10 })}
-          style={s({ padding: '7px 16px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', cursor: 'pointer', flex: 1 })}>
+      {/* Lägg till fas */}
+      <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '10px 14px' }}>
+        <button
+          type="button"
+          onClick={() => actions.addLessonPhase({ title: 'Ny fas', durationMin: 10, targetModuleId: 'timer' as ModuleId })}
+          style={s({
+            width: '100%',
+            padding: '9px',
+            border: '1px dashed var(--border-medium)',
+            borderRadius: 'var(--radius-md)',
+            background: 'transparent',
+            fontSize: 'var(--text-sm)',
+            color: 'var(--text-tertiary)',
+            cursor: 'pointer',
+            transition: 'all 120ms ease',
+          })}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'var(--surface-hover)'; (e.currentTarget as HTMLElement).style.color = 'var(--text-primary)'; }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'transparent'; (e.currentTarget as HTMLElement).style.color = 'var(--text-tertiary)'; }}
+        >
           + Lägg till fas
         </button>
       </div>
