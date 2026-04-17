@@ -1,112 +1,88 @@
 import { useMemo } from 'react'
 import { useBoardStore, type ExitTicketState } from '../../store/useBoardStore'
 
-const QUESTION_PRESETS = [
+const PRESETS = [
   'Hur trygg känner du dig med dagens mål?',
-  'Vilken del behöver vi repetera i nästa lektion?',
+  'Vilken del behöver vi repetera nästa lektion?',
   'Hur redo är du att börja på egen hand?',
 ]
 
 export function ExitTicketWindow() {
   const exitTicket = useBoardStore((state) => state.exitTicket)
   const actions = useBoardStore((state) => state.actions)
-  const questionSummary = useMemo(() => summarizeOptions(exitTicket), [exitTicket])
 
-  if (!exitTicket) {
-    return (
-      <div className="panel-card">
-        <p className="eyebrow">Exit ticket</p>
-        <p>Laddar svarsmall...</p>
-      </div>
-    )
+  if (!exitTicket) return null
+
+  const total = exitTicket.totalResponses
+
+  const s: React.CSSProperties = {
+    fontFamily: 'var(--font-sans)',
   }
 
-  const totalResponses = exitTicket.totalResponses
-
-  const handlePreset = (text: string) => actions.setExitTicketQuestion(text)
-
   return (
-    <div className="exit-ticket-window">
-      <header className="lesson-plan-header">
-        <div>
-          <p className="eyebrow">Exit ticket</p>
-          <h2>Snabb temperatur</h2>
-          <p className="exit-ticket-status">
-            {totalResponses ? `${totalResponses} svar registrerade` : 'Inga svar ännu'}
-          </p>
-        </div>
-        <div className="exit-ticket-controls">
-          <button type="button" className="toolbar-btn outline" onClick={actions.resetExitTicket}>
-            Nollställ svar
-          </button>
-          <button type="button" className="toolbar-btn" onClick={actions.shareExitTicketToInstructions} disabled={!totalResponses}>
-            Visa i instruktionen
-          </button>
-        </div>
-      </header>
+    <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
 
-      <div className="exit-ticket-question">
-        <label>
+      {/* Fråga */}
+      <div style={{ padding: '14px 16px', borderBottom: '1px solid var(--border-subtle)' }}>
+        <div style={{ fontSize: 'var(--text-xs)', fontWeight: 600, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8, ...s }}>
           Fråga till klassen
-          <textarea
-            value={exitTicket.question}
-            onChange={(event) => actions.setExitTicketQuestion(event.target.value)}
-            rows={2}
-          />
-        </label>
-        <div className="preset-row">
-          {QUESTION_PRESETS.map((preset) => (
-            <button key={preset} type="button" className="ghost-btn" onClick={() => handlePreset(preset)}>
-              {preset}
+        </div>
+        <textarea
+          value={exitTicket.question}
+          onChange={(e) => actions.setExitTicketQuestion(e.target.value)}
+          rows={2}
+          placeholder="Skriv din fråga..."
+          style={{ width: '100%', border: 'none', background: 'transparent', resize: 'none', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-base)', color: 'var(--text-primary)', outline: 'none', lineHeight: 1.5 }}
+        />
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8 }}>
+          {PRESETS.map(p => (
+            <button key={p} type="button" onClick={() => actions.setExitTicketQuestion(p)}
+              style={{ padding: '4px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap', transition: 'all 120ms ease' }}>
+              {p.substring(0, 28)}…
             </button>
           ))}
         </div>
       </div>
 
-      <div className="exit-ticket-options">
-        {exitTicket.options.map((option) => {
-          const percentage = totalResponses ? Math.round((option.count / totalResponses) * 100) : 0
+      {/* Svarsalternativ */}
+      <div style={{ flex: 1, overflow: 'auto', padding: '8px 0' }}>
+        {exitTicket.options.map((opt) => {
+          const pct = total ? Math.round((opt.count / total) * 100) : 0
           return (
-            <div key={option.id} className="exit-ticket-card">
-              <button type="button" className="exit-ticket-button" onClick={() => actions.submitExitTicketResponse(option.id)}>
-                <strong>{option.label}</strong>
-                <span>{option.description}</span>
-              </button>
-              <div className="exit-ticket-meter">
-                <span style={{ width: `${percentage}%` }} />
-              </div>
-              <div className="exit-ticket-meta">
+            <div key={opt.id} style={{ padding: '10px 16px', borderBottom: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1 }}>
                 <input
-                  type="text"
-                  value={option.label}
-                  onChange={(event) => actions.setExitTicketOptionLabel(option.id, event.target.value)}
-                  aria-label={`Label för ${option.label}`}
+                  value={opt.label}
+                  onChange={(e) => actions.setExitTicketOptionLabel(opt.id, e.target.value)}
+                  style={{ border: 'none', background: 'transparent', fontFamily: 'var(--font-sans)', fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-primary)', outline: 'none', width: '100%' }}
                 />
-                <span>
-                  {option.count} svar • {percentage}%
-                </span>
+                {/* Progress bar */}
+                <div style={{ height: 4, background: 'var(--surface-secondary)', borderRadius: 2, marginTop: 6, overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: pct + '%', background: 'var(--accent)', borderRadius: 2, transition: 'width 300ms ease' }} />
+                </div>
+              </div>
+              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-mono)', whiteSpace: 'nowrap' }}>
+                {opt.count} · {pct}%
               </div>
             </div>
           )
         })}
       </div>
 
-      <div className="exit-ticket-summary">
-        <p>{questionSummary}</p>
+      {/* Botten */}
+      <div style={{ padding: '10px 14px', borderTop: '1px solid var(--border-subtle)', display: 'flex', gap: 8, alignItems: 'center' }}>
+        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontFamily: 'var(--font-sans)', flex: 1 }}>
+          {total ? total + ' svar' : 'Inga svar ännu'}
+        </div>
+        <button type="button" onClick={actions.resetExitTicket}
+          style={{ padding: '6px 14px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
+          Nollställ
+        </button>
+        <button type="button" onClick={actions.shareExitTicketToInstructions} disabled={!total}
+          style={{ padding: '6px 14px', borderRadius: 'var(--radius-full)', border: 'none', background: total ? 'var(--accent)' : 'var(--surface-secondary)', color: total ? '#fff' : 'var(--text-tertiary)', fontSize: 'var(--text-xs)', cursor: total ? 'pointer' : 'default', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>
+          Visa i instruktion
+        </button>
       </div>
     </div>
   )
-}
-
-function summarizeOptions(exitTicket: ExitTicketState | undefined) {
-  if (!exitTicket || !exitTicket.totalResponses) {
-    return 'Sammanfattning visas när svar har samlats in.'
-  }
-  const parts = exitTicket.options.map((option) => {
-    const percentage = exitTicket.totalResponses
-      ? Math.round((option.count / exitTicket.totalResponses) * 100)
-      : 0
-    return `${option.label}: ${percentage}%`
-  })
-  return parts.join(' · ')
 }
