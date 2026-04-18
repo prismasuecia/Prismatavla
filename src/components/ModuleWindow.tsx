@@ -42,31 +42,8 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     height: layout.size?.height ?? fallbackSize.height,
   }
   const viewportLimits = useViewportLimits()
-  const dragRef = useRef<{ sx: number; sy: number; px: number; py: number } | null>(null)
 
   const bringToFront = () => actions.bringToFront(layout.moduleId)
-
-  const onHeaderMouseDown = (e: React.MouseEvent<HTMLElement>) => {
-    if ((e.target as HTMLElement).closest('button')) return
-    if (isLocked) return
-    e.preventDefault()
-    bringToFront()
-    const pos = layout.position ?? { x: 100, y: 100 }
-    dragRef.current = { sx: e.clientX, sy: e.clientY, px: pos.x, py: pos.y }
-    const move = (ev: MouseEvent) => {
-      if (!dragRef.current) return
-      actions.updateModulePosition({
-        moduleId: layout.moduleId,
-        position: {
-          x: Math.max(0, dragRef.current.px + ev.clientX - dragRef.current.sx),
-          y: Math.max(0, dragRef.current.py + ev.clientY - dragRef.current.sy),
-        }
-      })
-    }
-    const up = () => { dragRef.current = null; document.removeEventListener('mousemove', move); document.removeEventListener('mouseup', up) }
-    document.addEventListener('mousemove', move)
-    document.addEventListener('mouseup', up)
-  }
 
   const resizeHandles = isLocked ? undefined : {
     right: <span className="module-resize module-resize-right" aria-hidden="true" />,
@@ -88,7 +65,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
   }
 
   const header = (
-    <header className="module-header" onMouseDown={onHeaderMouseDown}
+    <header className="module-header"
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '11px 14px', borderBottom: '1px solid var(--border-subtle)', cursor: isLocked ? 'default' : 'grab', userSelect: 'none', flexShrink: 0, background: 'var(--surface-primary)', minHeight: 44 }}>
       <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
         {config.title}
@@ -105,13 +82,12 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     </header>
   )
 
-  const content = <div className="module-content">{children}</div>
-
   if (isFullscreen) {
     return (
       <div className={clsx('module-window', 'module-window-fullscreen', { 'is-active': isActive })}
         style={{ zIndex: layout.zIndex, overflow: 'hidden' }} onMouseDown={bringToFront}>
-        {header}{content}
+        {header}
+        <div className="module-content">{children}</div>
       </div>
     )
   }
@@ -121,11 +97,14 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       <div className={clsx('module-window', { 'is-active': isActive })}
         style={{ position: 'fixed', inset: '1rem', width: 'auto', zIndex: layout.zIndex, overflow: 'hidden' }}
         onMouseDown={bringToFront}>
-        {header}{content}
+        {header}
+        <div className="module-content">{children}</div>
       </div>
     )
   }
 
+  // Använd Rnd med cancel=".module-content" — hela ytan utom content är dragbar
+  // Inga dragHandleClassName — Rnd sköter drag internt på sin egen wrapper
   return (
     <Rnd
       className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
@@ -135,10 +114,18 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       minWidth={MIN_WIDTH} minHeight={MIN_HEIGHT}
       maxWidth={viewportLimits.maxWidth} maxHeight={viewportLimits.maxHeight}
       bounds="parent"
-      disableDragging={true}
+      disableDragging={isLocked}
       enableResizing={isLocked ? DISABLED_HANDLES : RESIZE_HANDLES}
       resizeHandleComponent={resizeHandles}
+      cancel=".module-content"
       onMouseDown={bringToFront}
+      onDrag={(_e, data) => {
+        if (isLocked) return
+        actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: data.x, y: data.y } })
+      }}
+      onDragStop={(_e, data) => {
+        actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: data.x, y: data.y } })
+      }}
       onResize={(_e, _d, ref, _delta, pos) => {
         if (isLocked) return
         actions.updateModuleSize({ moduleId: layout.moduleId, size: { width: ref.offsetWidth, height: ref.offsetHeight } })
@@ -149,7 +136,8 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         actions.updateModulePosition({ moduleId: layout.moduleId, position: pos ?? layout.position })
       }}
     >
-      {header}{content}
+      {header}
+      <div className="module-content">{children}</div>
     </Rnd>
   )
 }
