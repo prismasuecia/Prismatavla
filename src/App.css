@@ -1,7 +1,7 @@
 /* =============================================
-   PRISMA TAVLA ÃÂ¢ÃÂÃÂ App.css v2.0
-   Filosofi: Bo BergstrÃÂÃÂ¶m ÃÂÃÂ Apple ÃÂÃÂ Montessori ÃÂÃÂ NPF
-   Luft. Stillhet. MaterialkÃÂÃÂ¤nsla.
+   PRISMA TAVLA ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ App.css v2.0
+   Filosofi: Bo BergstrÃÂÃÂÃÂÃÂ¶m ÃÂÃÂÃÂÃÂ Apple ÃÂÃÂÃÂÃÂ Montessori ÃÂÃÂÃÂÃÂ NPF
+   Luft. Stillhet. MaterialkÃÂÃÂÃÂÃÂ¤nsla.
    ============================================= */
 
 /* === CANVAS === */
@@ -45,7 +45,7 @@
   z-index: 9999 !important;
 }
 
-/* === MODULE HEADER ÃÂ¢ÃÂÃÂ KRITISKT: inget som bryter drag === */
+/* === MODULE HEADER ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ KRITISKT: inget som bryter drag === */
 .module-header {
   display: flex;
   justify-content: space-between;
@@ -57,7 +57,7 @@
   user-select: none;
   flex-shrink: 0;
   min-height: 44px;
-  /* VIKTIGT: pointer-events: auto ÃÂ¢ÃÂÃÂ aldrig none */
+  /* VIKTIGT: pointer-events: auto ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ aldrig none */
   pointer-events: auto;
 }
 
@@ -453,7 +453,7 @@
   line-height: 1.5;
 }
 
-/* ProjektorlÃÂÃÂ¤ge */
+/* ProjektorlÃÂÃÂÃÂÃÂ¤ge */
 .projector-mode .dock {
   transform: translateX(-50%) translateY(100%);
 }
@@ -492,8 +492,8 @@
 
 
 /* =============================================
-   GRUPPER, TUR I TUR, SITTPLATS Ã¢ÂÂ global polish
-   DÃÂ¶ljer Excel-kÃÂ¤nslan utan att bryta logiken
+   GRUPPER, TUR I TUR, SITTPLATS ÃÂ¢ÃÂÃÂ global polish
+   DÃÂÃÂ¶ljer Excel-kÃÂÃÂ¤nslan utan att bryta logiken
    ============================================= */
 
 /* Alla select-element i appen */
@@ -560,7 +560,7 @@ textarea:focus {
   background: var(--surface-primary);
 }
 
-/* Checkbox - dÃÂ¶lj default och ersÃÂ¤tt */
+/* Checkbox - dÃÂÃÂ¶lj default och ersÃÂÃÂ¤tt */
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -781,7 +781,7 @@ input[type="checkbox"]:checked::after {
   align-items: center;
 }
 
-/* Labels i formulÃÂ¤r */
+/* Labels i formulÃÂÃÂ¤r */
 label {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -869,8 +869,8 @@ label {
 
 
 /* =============================================
-   GLOBAL FORM POLISH â polerar befintliga HTML-element
-   utan att rÃ¶ra komponentstrukturen
+   GLOBAL FORM POLISH Ã¢ÂÂ polerar befintliga HTML-element
+   utan att rÃÂ¶ra komponentstrukturen
    ============================================= */
 
 /* Alla select i moduler */
@@ -914,7 +914,7 @@ label {
   background: var(--surface-primary);
 }
 
-/* Alla checkbox i moduler â ersÃ¤tt med custom toggle-look */
+/* Alla checkbox i moduler Ã¢ÂÂ ersÃÂ¤tt med custom toggle-look */
 .module-content input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -950,7 +950,7 @@ label {
   transform: translateX(16px);
 }
 
-/* Alla knappar i moduler â basstil */
+/* Alla knappar i moduler Ã¢ÂÂ basstil */
 .module-content button:not([style]) {
   padding: 7px 16px;
   border-radius: var(--radius-full);
@@ -1048,7 +1048,7 @@ label {
   background: var(--surface-hover);
 }
 
-/* Bullet-listor i moduler â ta bort bullets, ge padding */
+/* Bullet-listor i moduler Ã¢ÂÂ ta bort bullets, ge padding */
 .module-content ul {
   list-style: none;
   padding: 0;
@@ -1073,7 +1073,7 @@ label {
   background: var(--surface-hover);
 }
 
-/* SeatingModule specifikt â ta bort grid-gaps och ge luft */
+/* SeatingModule specifikt Ã¢ÂÂ ta bort grid-gaps och ge luft */
 .seating-module {
   padding: 16px;
   display: flex;
@@ -1090,7 +1090,7 @@ label {
   font-size: var(--text-sm);
 }
 
-/* GroupsModule â steg-indikatorer */
+/* GroupsModule Ã¢ÂÂ steg-indikatorer */
 .module-content [class*="step"],
 .module-content [class*="tab"] {
   font-family: var(--font-sans);
@@ -1099,7 +1099,7 @@ label {
 
 
 /* =============================================
-   GROUPS WINDOW — Arbetsgrupper
+   GROUPS WINDOW â Arbetsgrupper
    ============================================= */
 
 .groups-window {
@@ -1434,7 +1434,7 @@ label {
 .global-status { margin-top: auto; }
 
 /* =============================================
-   TURN / WHEEL WINDOW — Tur i tur
+   TURN / WHEEL WINDOW â Tur i tur
    ============================================= */
 
 .wheel-window {
@@ -1636,7 +1636,7 @@ label {
 }
 
 /* =============================================
-   SEATING MODULE — Sittplats
+   SEATING MODULE â Sittplats
    ============================================= */
 
 .seating-module {
@@ -1694,3 +1694,14 @@ label {
   border-style: dashed;
   opacity: 0.6;
 }
+
+
+/* module-surface är drag-handle — visa grab cursor */
+.module-surface {
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.module-surface:active { cursor: grabbing; }
