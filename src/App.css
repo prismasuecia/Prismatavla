@@ -1,7 +1,7 @@
 /* =============================================
-   PRISMA TAVLA ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ App.css v2.0
-   Filosofi: Bo BergstrÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¶m ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ Apple ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ Montessori ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ NPF
-   Luft. Stillhet. MaterialkÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤nsla.
+   PRISMA TAVLA ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ App.css v2.0
+   Filosofi: Bo BergstrÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¶m ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ Apple ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ Montessori ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ NPF
+   Luft. Stillhet. MaterialkÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤nsla.
    ============================================= */
 
 /* === CANVAS === */
@@ -45,7 +45,7 @@
   z-index: 9999 !important;
 }
 
-/* === MODULE HEADER ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ KRITISKT: inget som bryter drag === */
+/* === MODULE HEADER ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ KRITISKT: inget som bryter drag === */
 .module-header {
   display: flex;
   justify-content: space-between;
@@ -57,7 +57,7 @@
   user-select: none;
   flex-shrink: 0;
   min-height: 44px;
-  /* VIKTIGT: pointer-events: auto ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ aldrig none */
+  /* VIKTIGT: pointer-events: auto ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ aldrig none */
   pointer-events: auto;
 }
 
@@ -453,7 +453,7 @@
   line-height: 1.5;
 }
 
-/* ProjektorlÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤ge */
+/* ProjektorlÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤ge */
 .projector-mode .dock {
   transform: translateX(-50%) translateY(100%);
 }
@@ -492,8 +492,8 @@
 
 
 /* =============================================
-   GRUPPER, TUR I TUR, SITTPLATS ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ global polish
-   DÃÂÃÂÃÂÃÂ¶ljer Excel-kÃÂÃÂÃÂÃÂ¤nslan utan att bryta logiken
+   GRUPPER, TUR I TUR, SITTPLATS ÃÂÃÂÃÂÃÂ¢ÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ global polish
+   DÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¶ljer Excel-kÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤nslan utan att bryta logiken
    ============================================= */
 
 /* Alla select-element i appen */
@@ -560,7 +560,7 @@ textarea:focus {
   background: var(--surface-primary);
 }
 
-/* Checkbox - dÃÂÃÂÃÂÃÂ¶lj default och ersÃÂÃÂÃÂÃÂ¤tt */
+/* Checkbox - dÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¶lj default och ersÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤tt */
 input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -776,7 +776,7 @@ input[type="checkbox"]:checked::after {
   align-items: center;
 }
 
-/* Labels i formulÃÂÃÂÃÂÃÂ¤r */
+/* Labels i formulÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ¤r */
 label {
   font-family: var(--font-sans);
   font-size: var(--text-sm);
@@ -864,8 +864,8 @@ label {
 
 
 /* =============================================
-   GLOBAL FORM POLISH ÃÂ¢ÃÂÃÂ polerar befintliga HTML-element
-   utan att rÃÂÃÂ¶ra komponentstrukturen
+   GLOBAL FORM POLISH ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ polerar befintliga HTML-element
+   utan att rÃÂÃÂÃÂÃÂ¶ra komponentstrukturen
    ============================================= */
 
 /* Alla select i moduler */
@@ -909,7 +909,7 @@ label {
   background: var(--surface-primary);
 }
 
-/* Alla checkbox i moduler ÃÂ¢ÃÂÃÂ ersÃÂÃÂ¤tt med custom toggle-look */
+/* Alla checkbox i moduler ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ ersÃÂÃÂÃÂÃÂ¤tt med custom toggle-look */
 .module-content input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -945,7 +945,7 @@ label {
   transform: translateX(16px);
 }
 
-/* Alla knappar i moduler ÃÂ¢ÃÂÃÂ basstil */
+/* Alla knappar i moduler ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ basstil */
 .module-content button:not([style]) {
   padding: 7px 16px;
   border-radius: var(--radius-full);
@@ -1043,7 +1043,7 @@ label {
   background: var(--surface-hover);
 }
 
-/* Bullet-listor i moduler ÃÂ¢ÃÂÃÂ ta bort bullets, ge padding */
+/* Bullet-listor i moduler ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ ta bort bullets, ge padding */
 .module-content ul {
   list-style: none;
   padding: 0;
@@ -1068,7 +1068,7 @@ label {
   background: var(--surface-hover);
 }
 
-/* SeatingModule specifikt ÃÂ¢ÃÂÃÂ ta bort grid-gaps och ge luft */
+/* SeatingModule specifikt ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ ta bort grid-gaps och ge luft */
 .seating-module {
   padding: 16px;
   display: flex;
@@ -1085,7 +1085,7 @@ label {
   font-size: var(--text-sm);
 }
 
-/* GroupsModule ÃÂ¢ÃÂÃÂ steg-indikatorer */
+/* GroupsModule ÃÂÃÂ¢ÃÂÃÂÃÂÃÂ steg-indikatorer */
 .module-content [class*="step"],
 .module-content [class*="tab"] {
   font-family: var(--font-sans);
@@ -1094,7 +1094,7 @@ label {
 
 
 /* =============================================
-   GROUPS WINDOW Ã¢ÂÂ Arbetsgrupper
+   GROUPS WINDOW ÃÂ¢ÃÂÃÂ Arbetsgrupper
    ============================================= */
 
 .groups-window {
@@ -1429,7 +1429,7 @@ label {
 .global-status { margin-top: auto; }
 
 /* =============================================
-   TURN / WHEEL WINDOW Ã¢ÂÂ Tur i tur
+   TURN / WHEEL WINDOW ÃÂ¢ÃÂÃÂ Tur i tur
    ============================================= */
 
 .wheel-window {
@@ -1631,7 +1631,7 @@ label {
 }
 
 /* =============================================
-   SEATING MODULE Ã¢ÂÂ Sittplats
+   SEATING MODULE ÃÂ¢ÃÂÃÂ Sittplats
    ============================================= */
 
 .seating-module {
@@ -1691,7 +1691,7 @@ label {
 }
 
 
-/* module-surface Ã¤r drag-handle â visa grab cursor */
+/* module-surface ÃÂ¤r drag-handle Ã¢ÂÂ visa grab cursor */
 .module-surface {
   cursor: grab;
   display: flex;
@@ -1704,21 +1704,21 @@ label {
 
 
 /* =============================================
-   VISUELL POLISH — fönster, header, drag, resize
+   VISUELL POLISH â fÃ¶nster, header, drag, resize
    ============================================= */
 
-/* Aktivt fönster — subtil grön top-border */
+/* Aktivt fÃ¶nster â subtil grÃ¶n top-border */
 .module-window.is-active {
   box-shadow: 0 0 0 1.5px var(--accent) inset, var(--shadow-md);
 }
 
-/* Inaktivt fönster */
+/* Inaktivt fÃ¶nster */
 .module-window:not(.is-active) {
   box-shadow: var(--shadow-sm);
   opacity: 0.96;
 }
 
-/* Header grab — visa cursor tydligare */
+/* Header grab â visa cursor tydligare */
 .module-header {
   border-bottom: 1px solid var(--border-subtle);
 }
@@ -1727,7 +1727,7 @@ label {
   cursor: grabbing !important;
 }
 
-/* Resize diagonal — synlig SVG-ikon */
+/* Resize diagonal â synlig SVG-ikon */
 .module-resize-diagonal {
   opacity: 0.5;
   transition: opacity 120ms ease;
@@ -1737,12 +1737,12 @@ label {
   opacity: 1;
 }
 
-/* Resize höger kant — hover feedback */
+/* Resize hÃ¶ger kant â hover feedback */
 .module-resize-right:hover {
   background: var(--accent-muted);
 }
 
-/* module-content ska ta upp resten av höjden */
+/* module-content ska ta upp resten av hÃ¶jden */
 .module-content {
   flex: 1;
   overflow: auto;
@@ -1751,27 +1751,27 @@ label {
   flex-direction: column;
 }
 
-/* Dock — fix så Projektor inte klipps */
+/* Dock â fix sÃ¥ Projektor inte klipps */
 .dock {
   overflow-x: auto;
   scrollbar-width: none;
 }
 .dock::-webkit-scrollbar { display: none; }
 
-/* Dock item — lite tightare på liten skärm */
+/* Dock item â lite tightare pÃ¥ liten skÃ¤rm */
 @media (max-width: 1200px) {
   .dock-item { min-width: 52px; padding: 6px 4px; }
   .dock-item span { font-size: 10px; }
 }
 
-/* TrafficBadge — lite rundare, mer luft */
+/* TrafficBadge â lite rundare, mer luft */
 .traffic-badge {
   border-radius: 14px;
   padding: 6px 14px 8px;
   min-width: 72px;
 }
 
-/* Module chip (minimerad) — tydligare */
+/* Module chip (minimerad) â tydligare */
 .module-chip {
   border: 1.5px solid var(--border-medium);
   background: var(--surface-primary);
@@ -1788,7 +1788,7 @@ label {
   box-shadow: var(--shadow-md);
 }
 
-/* Lektionsplan — ta bort number input pilarna */
+/* Lektionsplan â ta bort number input pilarna */
 .module-content input[type=number]::-webkit-inner-spin-button,
 .module-content input[type=number]::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -1802,14 +1802,120 @@ label {
   font-family: var(--font-mono);
 }
 
-/* Bättre scrollbar inuti moduler */
+/* BÃ¤ttre scrollbar inuti moduler */
 .module-content::-webkit-scrollbar { width: 4px; }
 .module-content::-webkit-scrollbar-track { background: transparent; }
 .module-content::-webkit-scrollbar-thumb { background: var(--border-medium); border-radius: 2px; }
 .module-content::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
 
-/* Exit ticket svarsalternativ — tydligare hover */
+/* Exit ticket svarsalternativ â tydligare hover */
 .module-content [class*="option"]:hover,
 .module-content [class*="svar"]:hover {
   background: var(--accent-muted);
+}
+
+
+/* Timer puls när igång */
+@keyframes timer-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Klocka — centrera innehåll */
+.module-content > div[style*="align-items: center"][style*="justify-content: center"] {
+  flex: 1;
+}
+
+/* Randomizer — namnvisning animation */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sound meter — accentfärg på range input */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border-medium);
+  outline: none;
+}
+
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(45,92,69,0.3);
+}
+
+input[type=range]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 1px 4px rgba(45,92,69,0.3);
+}
+
+/* Bättre textarea styling */
+.module-content textarea {
+  resize: none;
+  line-height: 1.7;
+}
+
+/* Toggle switches */
+input[type=checkbox][role=switch],
+.toggle-switch {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 38px;
+  height: 22px;
+  border-radius: 11px;
+  background: var(--border-medium);
+  position: relative;
+  cursor: pointer;
+  transition: background 200ms ease;
+  flex-shrink: 0;
+}
+
+input[type=checkbox][role=switch]:checked,
+.toggle-switch.active {
+  background: var(--accent);
+}
+
+input[type=checkbox][role=switch]::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  top: 3px;
+  left: 3px;
+  transition: transform 200ms ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+input[type=checkbox][role=switch]:checked::after {
+  transform: translateX(16px);
+}
+
+/* ClassListPrompt — om ingen klass är vald */
+.class-list-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 32px;
+  gap: 16px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
 }
