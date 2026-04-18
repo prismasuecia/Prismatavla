@@ -29,14 +29,14 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
   const w = Math.max(MIN_W, sz.width)
   const h = Math.max(MIN_H, sz.height)
 
-  // Drag med document-level listeners — fungerar även utan setPointerCapture
+  // Drag med document-level listeners â fungerar Ã¤ven utan setPointerCapture
   const dragRef = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
 
   const onHeaderPointerDown = (e: React.PointerEvent<HTMLElement>) => {
     if ((e.target as HTMLElement).closest('button')) return
     if (isLocked) return
     e.preventDefault()
-    actions.bringToFront(layout.moduleId)
+    actions.bringModuleToFront(layout.moduleId)
     dragRef.current = { px: pos.x, py: pos.y, mx: e.clientX, my: e.clientY }
 
     const move = (ev: PointerEvent) => {
@@ -66,7 +66,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       if (isLocked) return
       e.preventDefault()
       e.stopPropagation()
-      actions.bringToFront(layout.moduleId)
+      actions.bringModuleToFront(layout.moduleId)
       resizeRef.current = { dir, sw: w, sh: h, mx: e.clientX, my: e.clientY }
 
       const move = (ev: PointerEvent) => {
@@ -110,7 +110,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     <div
       className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
       style={windowStyle}
-      onPointerDown={() => actions.bringToFront(layout.moduleId)}
+      onPointerDown={() => actions.bringModuleToFront(layout.moduleId)}
     >
       <header
         className="module-header"
@@ -130,11 +130,11 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
           <WinBtn label="Minimera" onClick={() => actions.minimizeModule(layout.moduleId)}><Minus size={14} /></WinBtn>
           {config.supportsFullscreen && (
-            <WinBtn label={isFullscreen ? 'Avsluta helskärm' : 'Helskärm'} onClick={() => actions.toggleModuleFullscreen(layout.moduleId)}>
+            <WinBtn label={isFullscreen ? 'Avsluta helskÃ¤rm' : 'HelskÃ¤rm'} onClick={() => actions.toggleModuleFullscreen(layout.moduleId)}>
               {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </WinBtn>
           )}
-          <WinBtn label="Stäng" onClick={() => actions.closeModule(layout.moduleId)} danger><X size={14} /></WinBtn>
+          <WinBtn label="StÃ¤ng" onClick={() => actions.closeModule(layout.moduleId)} danger><X size={14} /></WinBtn>
         </div>
       </header>
 
