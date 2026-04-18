@@ -7,10 +7,10 @@ const TARGETABLE_MODULES: ModuleId[] = ['timer', 'turntaking', 'groups', 'instru
 
 const TEMPLATES: { name: string; phases: { name: string; minutes: number; targetModuleId: ModuleId }[] }[] = [
   {
-    name: 'Genomgång + Övning',
+    name: 'GenomgÃ¥ng + Ãvning',
     phases: [
-      { name: 'Genomgång', minutes: 15, targetModuleId: 'timer' },
-      { name: 'Parövning', minutes: 10, targetModuleId: 'groups' },
+      { name: 'GenomgÃ¥ng', minutes: 15, targetModuleId: 'timer' },
+      { name: 'ParÃ¶vning', minutes: 10, targetModuleId: 'groups' },
       { name: 'Redovisning', minutes: 10, targetModuleId: 'turntaking' },
     ],
   },
@@ -79,7 +79,7 @@ export function LessonPlanWindow() {
         {totalMinutes > 0 && (
           <div style={{ width: 48, height: 48, position: 'relative' }}>
             <svg viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
-              <circle cx={18} cy={18} r={14} fill="none" stroke="var(--surface-secondary)" strokeWidth={3} />
+              <circle cx={18} cy={18} r={14} fill="none" stroke="var(--border-medium)" strokeWidth={3} />
               <circle cx={18} cy={18} r={14} fill="none" stroke="var(--accent)" strokeWidth={3}
                 strokeDasharray={88} strokeDashoffset={88 * (1 - progress)} strokeLinecap="round"
                 style={{ transition: 'stroke-dashoffset 400ms ease' }} />
@@ -105,7 +105,7 @@ export function LessonPlanWindow() {
         {lessonPlan.phases.length === 0 ? (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', padding: 32 }}>
             <span style={s({ color: 'var(--text-tertiary)', fontSize: 'var(--text-sm)', textAlign: 'center', lineHeight: 1.6 })}>
-              Välj en mall ovan eller lägg till faser manuellt
+              VÃ¤lj en mall ovan eller lÃ¤gg till faser manuellt
             </span>
           </div>
         ) : (
@@ -127,7 +127,7 @@ export function LessonPlanWindow() {
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   fontSize: 'var(--text-xs)', fontWeight: 600,
                 })}>
-                  {phase.done ? '✓' : i + 1}
+                  {phase.done ? 'â' : i + 1}
                 </span>
                 <span style={s({ flex: 1, fontSize: 'var(--text-base)', fontWeight: isActive ? 500 : 400, color: isActive ? 'var(--accent)' : 'var(--text-primary)' })}>
                   {phase.name}
@@ -141,7 +141,7 @@ export function LessonPlanWindow() {
                 <button type="button"
                   onClick={e => { e.stopPropagation(); actions.removeLessonPhase(phase.id); }}
                   style={s({ width: 22, height: 22, border: 'none', background: 'transparent', color: 'var(--text-tertiary)', cursor: 'pointer', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, padding: 0, flexShrink: 0 })}>
-                  ×
+                  Ã
                 </button>
               </div>
             )
@@ -149,11 +149,11 @@ export function LessonPlanWindow() {
         )}
       </div>
 
-      {/* Lägg till fas */}
+      {/* LÃ¤gg till fas */}
       <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '10px 14px' }}>
         <button type="button" onClick={() => actions.addLessonPhase()}
           style={s({ width: '100%', padding: '8px', border: '1px dashed var(--border-medium)', borderRadius: 'var(--radius-md)', background: 'transparent', fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', cursor: 'pointer' })}>
-          + Lägg till fas
+          + LÃ¤gg till fas
         </button>
       </div>
     </div>
