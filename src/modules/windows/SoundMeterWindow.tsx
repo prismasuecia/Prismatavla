@@ -40,7 +40,7 @@ export function SoundMeterWindow() {
       return
     }
     if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
-      actions.setSoundMeterStatus('unsupported', 'Din webbläsare saknar mikrofonstöd för den här funktionen.')
+      actions.setSoundMeterStatus('unsupported', 'Din webblÃ¤sare saknar mikrofonstÃ¶d fÃ¶r den hÃ¤r funktionen.')
       cleanup()
       return
     }
@@ -65,7 +65,7 @@ export function SoundMeterWindow() {
         loop()
       } catch (micError) {
         console.error('Sound meter mic error', micError)
-        actions.setSoundMeterStatus('denied', 'Ingen mikrofonåtkomst – ge tillstånd och försök igen.')
+        actions.setSoundMeterStatus('denied', 'Ingen mikrofonÃ¥tkomst â ge tillstÃ¥nd och fÃ¶rsÃ¶k igen.')
       }
     }
     const loop = () => {
@@ -96,11 +96,11 @@ export function SoundMeterWindow() {
       case 'listening':
         return 'Lyssnar...'
       case 'denied':
-        return 'Tillstånd nekades'
+        return 'TillstÃ¥nd nekades'
       case 'unsupported':
-        return 'Inte tillgänglig'
+        return 'Inte tillgÃ¤nglig'
       default:
-        return 'Avstängd'
+        return 'AvstÃ¤ngd'
     }
   }, [status, statusMessage])
 
@@ -118,60 +118,79 @@ export function SoundMeterWindow() {
   }, [meterLevel])
 
   return (
-    <div className="sound-meter-window">
-      <header className="lesson-plan-header">
-        <div>
-          <p className="eyebrow">Ljudnivå</p>
-          <h2>Ljudkoll i rummet</h2>
-          <p className="sound-meter-status">{statusLabel}</p>
-        </div>
-        <div className="seating-config">
-          <label>
-            Känslighet
-            <input
-              type="range"
-              min={0.2}
-              max={1}
-              step={0.05}
-              value={soundMeter?.sensitivity ?? 0.65}
-              onChange={(event) => actions.setSoundMeterSensitivity(Number(event.target.value))}
-            />
-          </label>
-          <button type="button" className="toolbar-btn" onClick={handleToggle}>
-            {soundMeter?.enabled ? 'Stoppa mätning' : 'Starta mätning'}
-          </button>
-        </div>
-      </header>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: 'var(--font-sans)' }}>
 
-      <div className="sound-meter-gauge" aria-label="Aktuell ljudnivå">
-        <div className="sound-meter-track">
-          <span style={{ width: `${demand}%` }} />
+      {/* Nivå-mätare — stor och tydlig */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '24px 32px', gap: 16 }}>
+
+        {/* Cirkulär nivå-display */}
+        <div style={{ position: 'relative', width: 120, height: 120 }}>
+          <svg viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
+            <circle cx={50} cy={50} r={40} fill="none" stroke="var(--border-medium)" strokeWidth={6} />
+            <circle cx={50} cy={50} r={40} fill="none"
+              stroke={liveLevel > 0.7 ? '#B43C32' : liveLevel > 0.4 ? 'var(--timer-fill)' : 'var(--accent)'}
+              strokeWidth={6}
+              strokeDasharray={251.2}
+              strokeDashoffset={251.2 * (1 - Math.min(1, liveLevel))}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dashoffset 80ms ease, stroke 200ms ease' }}
+            />
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 26, fontWeight: 400, color: 'var(--text-primary)', lineHeight: 1 }}>
+              {Math.round(liveLevel * 100)}
+            </span>
+            <span style={{ fontSize: 10, color: 'var(--text-tertiary)', marginTop: 2 }}>%</span>
+          </div>
         </div>
-        <div className="sound-meter-values">
-          <strong>{demand}%</strong>
-          <span>
-            Topp: {Math.round(peakLevel * 100)}% · Trafiknorm: {trafficNorm}
-          </span>
+
+        {/* Status */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: 'var(--text-base)', fontWeight: 500, color: 'var(--text-primary)' }}>
+            {statusLabel}
+          </div>
+          {recommendation && (
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-tertiary)', marginTop: 4 }}>
+              Rekommendation: <strong style={{ color: 'var(--accent)' }}>{recommendation}</strong>
+            </div>
+          )}
         </div>
+
+        {/* Start/stopp-knapp */}
+        <button type="button" onClick={handleToggle}
+          style={{
+            padding: '10px 28px',
+            borderRadius: 'var(--radius-full)',
+            border: 'none',
+            background: soundMeter?.enabled ? 'var(--surface-secondary)' : 'var(--accent)',
+            color: soundMeter?.enabled ? 'var(--text-secondary)' : '#fff',
+            fontSize: 'var(--text-sm)',
+            fontWeight: 500,
+            cursor: 'pointer',
+            fontFamily: 'var(--font-sans)',
+            transition: 'all 150ms ease',
+          }}>
+          {soundMeter?.enabled ? 'Stoppa mätning' : 'Starta mätning'}
+        </button>
       </div>
 
-      <div className="sound-meter-actions">
-        <p>
-          Rekommendation: <strong>{recommendation.toUpperCase()}</strong>
-        </p>
-        <button type="button" className="toolbar-btn outline" onClick={actions.syncSoundMeterToTraffic}>
-          Uppdatera trafikljuset
-        </button>
+      {/* Inställningar — kompakt botten */}
+      <div style={{ borderTop: '1px solid var(--border-subtle)', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: 12 }}>
+        <span style={{ fontSize: 'var(--text-xs)', color: 'var(--text-tertiary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', flexShrink: 0 }}>
+          Känslighet
+        </span>
+        <input type="range" min={0.2} max={1} step={0.05}
+          value={soundMeter?.sensitivity ?? 0.65}
+          onChange={e => actions.setSoundMeterSensitivity(Number(e.target.value))}
+          style={{ flex: 1, accentColor: 'var(--accent)', height: 3 }}
+        />
+        {soundMeter?.enabled && (
+          <button type="button" onClick={() => actions.syncSoundMeterToTraffic()}
+            style={{ padding: '5px 10px', borderRadius: 'var(--radius-full)', border: '1px solid var(--border-medium)', background: 'transparent', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', cursor: 'pointer', flexShrink: 0 }}>
+            Uppdatera trafikljuset
+          </button>
+        )}
       </div>
     </div>
   )
-}
-
-function computeRms(buffer: Uint8Array) {
-  let sumSquares = 0
-  for (let i = 0; i < buffer.length; i += 1) {
-    const value = buffer[i] - 128
-    sumSquares += value * value
-  }
-  return Math.sqrt(sumSquares / buffer.length) / 128
 }
