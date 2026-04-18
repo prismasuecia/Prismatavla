@@ -133,7 +133,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       disableDragging={isLocked}
       enableResizing={isLocked ? disabledHandles : RESIZE_HANDLES}
       resizeHandleComponent={resizeHandles}
-      dragHandleClassName="module-header"
+      dragHandleClassName="module-surface"
       onMouseDown={handleBringToFront}
       onDrag={(_event, data) => {
         if (isLocked) return
@@ -198,11 +198,11 @@ function ModuleWindowShell({
             <Minus size={16} aria-hidden="true" />
           </button>
           {supportsFullscreen && onToggleFullscreen && (
-            <button type="button" aria-label={isFullscreen ? 'Avsluta helskÃ¤rm' : 'Visa helskÃ¤rm'} onClick={onToggleFullscreen}>
+            <button type="button" aria-label={isFullscreen ? 'Avsluta helskÃÂ¤rm' : 'Visa helskÃÂ¤rm'} onClick={onToggleFullscreen}>
               {isFullscreen ? <Minimize2 size={16} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
             </button>
           )}
-          <button type="button" aria-label="StÃ¤ng" onClick={onClose}>
+          <button type="button" aria-label="StÃÂ¤ng" onClick={onClose}>
             <X size={16} aria-hidden="true" />
           </button>
         </div>
