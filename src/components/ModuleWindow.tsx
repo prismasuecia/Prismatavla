@@ -1,6 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useRef, useState, useEffect, type ReactNode } from 'react'
 import clsx from 'clsx'
-import { Rnd } from 'react-rnd'
 import { Minus, X, Maximize2, Minimize2 } from 'lucide-react'
 import { useBoardStore, type ModuleWindowLayout } from '../store/useBoardStore'
 import type { ModuleConfig } from '../modules/moduleRegistry'
@@ -13,242 +12,170 @@ interface ModuleWindowProps {
   chipLabel?: string
 }
 
-const MIN_WIDTH = 360
-const MIN_HEIGHT = 280
-
-const RESIZE_HANDLES = {
-  top: false,
-  topRight: false,
-  right: true,
-  bottomRight: true,
-  bottom: true,
-  bottomLeft: false,
-  left: false,
-  topLeft: false,
-}
+const MIN_W = 320
+const MIN_H = 240
 
 export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWindowProps) {
-  const actions = useBoardStore((state) => state.actions)
-  const projectorMode = useBoardStore((state) => state.projectorMode)
-  const activeModuleId = useBoardStore((state) => state.moduleWindows.activeModuleId)
+  const actions = useBoardStore(s => s.actions)
+  const projectorMode = useBoardStore(s => s.projectorMode)
+  const activeModuleId = useBoardStore(s => s.moduleWindows.activeModuleId)
   const isMobile = useIsMobile()
   const isFullscreen = Boolean(layout.fullscreen)
   const isLocked = projectorMode || isMobile || (config.supportsFullscreen && isFullscreen)
   const isActive = activeModuleId === layout.moduleId
-  const fallbackSize = config.defaultSize ?? { width: MIN_WIDTH, height: MIN_HEIGHT }
-  const currentSize = {
-    width: layout.size?.width ?? fallbackSize.width,
-    height: layout.size?.height ?? fallbackSize.height,
-  }
-  const viewportLimits = useViewportLimits()
-  const resizeHandles = isLocked
-    ? undefined
-    : {
-        right: <span className="module-resize module-resize-right" aria-hidden="true" />,
-        bottom: <span className="module-resize module-resize-bottom" aria-hidden="true" />,
-        bottomRight: <span className="module-resize module-resize-diagonal" aria-hidden="true" />,
-      }
 
-  const handleRestore = () => actions.restoreModule(layout.moduleId)
-  const handleToggleFullscreen = config.supportsFullscreen ? () => actions.toggleModuleFullscreen(layout.moduleId) : undefined
-  const handleClose = () => actions.closeModule(layout.moduleId)
-  const handleMinimize = () => actions.minimizeModule(layout.moduleId)
-  const handleBringToFront = () => actions.bringModuleToFront(layout.moduleId)
+  const pos = layout.position ?? { x: 80, y: 80 }
+  const sz = layout.size ?? config.defaultSize ?? { width: 400, height: 320 }
+  const w = Math.max(MIN_W, sz.width)
+  const h = Math.max(MIN_H, sz.height)
+
+  const headerRef = useRef<HTMLElement>(null)
+  const dragOrigin = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
+
+  const resizeOrigin = useRef<{ dir: string; sw: number; sh: number; mx: number; my: number } | null>(null)
+
+  // Drag via Pointer Events — fungerar i React 19, ingen react-draggable behövs
+  const onHeaderPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return
+    if (isLocked) return
+    e.preventDefault()
+    actions.bringToFront(layout.moduleId)
+    dragOrigin.current = { px: pos.x, py: pos.y, mx: e.clientX, my: e.clientY }
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  }
+
+  const onHeaderPointerMove = (e: React.PointerEvent<HTMLElement>) => {
+    if (!dragOrigin.current) return
+    const dx = e.clientX - dragOrigin.current.mx
+    const dy = e.clientY - dragOrigin.current.my
+    actions.updateModulePosition({
+      moduleId: layout.moduleId,
+      position: {
+        x: Math.max(0, dragOrigin.current.px + dx),
+        y: Math.max(0, dragOrigin.current.py + dy),
+      }
+    })
+  }
+
+  const onHeaderPointerUp = () => { dragOrigin.current = null }
+
+  // Resize
+  const onResizePointerDown = (dir: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
+    if (isLocked) return
+    e.preventDefault()
+    e.stopPropagation()
+    actions.bringToFront(layout.moduleId)
+    resizeOrigin.current = { dir, sw: w, sh: h, mx: e.clientX, my: e.clientY }
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+  }
+
+  const onResizePointerMove = (dir: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
+    if (!resizeOrigin.current || resizeOrigin.current.dir !== dir) return
+    const dx = e.clientX - resizeOrigin.current.mx
+    const dy = e.clientY - resizeOrigin.current.my
+    const nw = dir.includes('e') || dir === 'se' ? Math.max(MIN_W, resizeOrigin.current.sw + dx) : w
+    const nh = dir.includes('s') || dir === 'se' ? Math.max(MIN_H, resizeOrigin.current.sh + dy) : h
+    actions.updateModuleSize({ moduleId: layout.moduleId, size: { width: nw, height: nh } })
+  }
+
+  const onResizePointerUp = () => { resizeOrigin.current = null }
 
   if (layout.minimized) {
     return (
-      <div
-        className="module-chip"
-        style={{ left: layout.position.x, top: layout.position.y, zIndex: layout.zIndex }}
-        role="button"
-        tabIndex={0}
-        onClick={handleRestore}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault()
-            handleRestore()
-          }
+      <div className="module-chip"
+        style={{ left: pos.x, top: pos.y, zIndex: layout.zIndex }}
+        onClick={() => actions.restoreModule(layout.moduleId)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') actions.restoreModule(layout.moduleId) }}
+        role="button" tabIndex={0}>
+        <config.icon size={14} aria-hidden />
+        <span>{config.title}{chipLabel && <strong style={{ marginLeft: 4 }}>{chipLabel}</strong>}</span>
+      </div>
+    )
+  }
+
+  const windowStyle: React.CSSProperties = isFullscreen
+    ? { position: 'fixed', top: '5%', left: '5%', width: '90vw', height: '90vh', zIndex: layout.zIndex, overflow: 'hidden', boxSizing: 'border-box' }
+    : isMobile
+    ? { position: 'fixed', inset: '1rem', width: 'auto', height: 'auto', zIndex: layout.zIndex, overflow: 'hidden', boxSizing: 'border-box' }
+    : { position: 'absolute', left: pos.x, top: pos.y, width: w, height: h, zIndex: layout.zIndex, overflow: 'hidden', boxSizing: 'border-box' }
+
+  return (
+    <div
+      className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
+      style={windowStyle}
+      onPointerDown={() => actions.bringToFront(layout.moduleId)}
+    >
+      {/* Header — drag handle */}
+      <header
+        ref={headerRef}
+        className="module-header"
+        onPointerDown={onHeaderPointerDown}
+        onPointerMove={onHeaderPointerMove}
+        onPointerUp={onHeaderPointerUp}
+        style={{
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 14px', minHeight: 44, flexShrink: 0,
+          borderBottom: '1px solid var(--border-subtle)',
+          background: 'var(--surface-primary)',
+          cursor: isLocked ? 'default' : 'grab',
+          userSelect: 'none', touchAction: 'none',
         }}
       >
-        <span>{config.title}</span>
-        {chipLabel && <strong>{chipLabel}</strong>}
-        <Maximize2 aria-hidden="true" size={16} />
-      </div>
-    )
-  }
-
-  if (isFullscreen) {
-    return (
-      <div
-        className={clsx('module-window', 'module-window-fullscreen', { 'is-active': isActive })}
-        style={{ zIndex: layout.zIndex }}
-        onMouseDown={handleBringToFront}
-      >
-        <ModuleWindowShell
-          title={config.title}
-          isFullscreen
-          onMinimize={handleMinimize}
-          onClose={handleClose}
-          onToggleFullscreen={handleToggleFullscreen}
-          supportsFullscreen={config.supportsFullscreen}
-        >
-          {children}
-        </ModuleWindowShell>
-      </div>
-    )
-  }
-
-  if (isMobile) {
-    return (
-      <div
-        className={clsx('module-window', { 'is-active': isActive, 'is-locked': true })}
-        style={{ position: 'fixed', inset: '1rem', width: 'auto', zIndex: layout.zIndex }}
-        data-locked="true"
-        onMouseDown={handleBringToFront}
-      >
-        <ModuleWindowShell
-          title={config.title}
-          onMinimize={handleMinimize}
-          onClose={handleClose}
-          onToggleFullscreen={handleToggleFullscreen}
-          supportsFullscreen={config.supportsFullscreen}
-        >
-          {children}
-        </ModuleWindowShell>
-      </div>
-    )
-  }
-
-  return (
-    <Rnd
-      className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
-      style={{ zIndex: layout.zIndex }}
-      size={currentSize}
-      position={layout.position}
-      minWidth={MIN_WIDTH}
-      minHeight={MIN_HEIGHT}
-      maxWidth={viewportLimits.maxWidth}
-      maxHeight={viewportLimits.maxHeight}
-      bounds="parent"
-      disableDragging={isLocked}
-      enableResizing={isLocked ? disabledHandles : RESIZE_HANDLES}
-      resizeHandleComponent={resizeHandles}
-      dragHandleClassName="module-surface" cancel=".module-content,.module-actions,button,input,textarea,select"
-      onMouseDown={handleBringToFront}
-      onDrag={(_event, data) => {
-        if (isLocked) return
-        actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: data.x, y: data.y } })
-      }}
-      onDragStop={(_event, data) =>
-        actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: data.x, y: data.y } })
-      }
-      onResize={(_event, _direction, ref, _delta, position) => {
-        if (isLocked) return
-        const nextPosition = position ?? layout.position
-        actions.updateModuleSize({ moduleId: layout.moduleId, size: { width: ref.offsetWidth, height: ref.offsetHeight } })
-        actions.updateModulePosition({ moduleId: layout.moduleId, position: nextPosition })
-      }}
-      onResizeStop={(_event, _direction, ref, _delta, position) => {
-        const nextPosition = position ?? layout.position
-        actions.updateModuleSize({
-          moduleId: layout.moduleId,
-          size: { width: ref.offsetWidth, height: ref.offsetHeight },
-        })
-        actions.updateModulePosition({ moduleId: layout.moduleId, position: nextPosition })
-      }}
-    >
-      <ModuleWindowShell
-        title={config.title}
-        onMinimize={handleMinimize}
-        onClose={handleClose}
-        onToggleFullscreen={handleToggleFullscreen}
-        supportsFullscreen={config.supportsFullscreen}
-      >
-        {children}
-      </ModuleWindowShell>
-    </Rnd>
-  )
-}
-
-interface ModuleWindowShellProps {
-  title: string
-  children: ReactNode
-  onMinimize: () => void
-  onClose: () => void
-  onToggleFullscreen?: () => void
-  isFullscreen?: boolean
-  supportsFullscreen: boolean
-}
-
-function ModuleWindowShell({
-  title,
-  children,
-  onMinimize,
-  onClose,
-  onToggleFullscreen,
-  isFullscreen,
-  supportsFullscreen,
-}: ModuleWindowShellProps) {
-  return (
-    <div className="module-surface">
-      <header className="module-header">
-        <strong>{title}</strong>
-        <div className="module-actions">
-          <button type="button" aria-label="Minimera" onClick={onMinimize}>
-            <Minus size={16} aria-hidden="true" />
-          </button>
-          {supportsFullscreen && onToggleFullscreen && (
-            <button type="button" aria-label={isFullscreen ? 'Avsluta helskÃÂÃÂ¤rm' : 'Visa helskÃÂÃÂ¤rm'} onClick={onToggleFullscreen}>
-              {isFullscreen ? <Minimize2 size={16} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
-            </button>
+        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {config.title}
+        </span>
+        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+          <WinBtn label="Minimera" onClick={() => actions.minimizeModule(layout.moduleId)}>
+            <Minus size={14} />
+          </WinBtn>
+          {config.supportsFullscreen && (
+            <WinBtn label={isFullscreen ? 'Avsluta helskärm' : 'Helskärm'} onClick={() => actions.toggleModuleFullscreen(layout.moduleId)}>
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </WinBtn>
           )}
-          <button type="button" aria-label="StÃÂÃÂ¤ng" onClick={onClose}>
-            <X size={16} aria-hidden="true" />
-          </button>
+          <WinBtn label="Stäng" onClick={() => actions.closeModule(layout.moduleId)} danger>
+            <X size={14} />
+          </WinBtn>
         </div>
       </header>
+
+      {/* Content */}
       <div className="module-content">{children}</div>
+
+      {/* Resize handles */}
+      {!isLocked && !isFullscreen && !isMobile && (
+        <>
+          <span className="module-resize module-resize-right"
+            onPointerDown={onResizePointerDown('e')}
+            onPointerMove={onResizePointerMove('e')}
+            onPointerUp={onResizePointerUp}
+            style={{ position: 'absolute', right: 0, top: 0, width: 8, height: '100%', cursor: 'ew-resize', touchAction: 'none' }}
+          />
+          <span className="module-resize module-resize-bottom"
+            onPointerDown={onResizePointerDown('s')}
+            onPointerMove={onResizePointerMove('s')}
+            onPointerUp={onResizePointerUp}
+            style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 8, cursor: 'ns-resize', touchAction: 'none' }}
+          />
+          <span className="module-resize module-resize-diagonal"
+            onPointerDown={onResizePointerDown('se')}
+            onPointerMove={onResizePointerMove('se')}
+            onPointerUp={onResizePointerUp}
+            style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, cursor: 'nwse-resize', touchAction: 'none' }}
+          />
+        </>
+      )}
     </div>
   )
 }
 
-const disabledHandles = {
-  top: false,
-  topRight: false,
-  right: false,
-  bottomRight: false,
-  bottom: false,
-  bottomLeft: false,
-  left: false,
-  topLeft: false,
-}
-
-interface ViewportLimits {
-  maxWidth: number
-  maxHeight: number
-}
-
-const getViewportLimits = (): ViewportLimits => {
-  if (typeof window === 'undefined') {
-    return {
-      maxWidth: 1200,
-      maxHeight: 800,
-    }
-  }
-  return {
-    maxWidth: Math.max(MIN_WIDTH, Math.floor(window.innerWidth * 0.9)),
-    maxHeight: Math.max(MIN_HEIGHT, Math.floor(window.innerHeight * 0.9)),
-  }
-}
-
-function useViewportLimits() {
-  const [limits, setLimits] = useState<ViewportLimits>(() => getViewportLimits())
-
-  useEffect(() => {
-    const handleResize = () => setLimits(getViewportLimits())
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  return limits
+function WinBtn({ label, onClick, danger, children }: { label: string; onClick: () => void; danger?: boolean; children: ReactNode }) {
+  return (
+    <button type="button" aria-label={label} onClick={onClick}
+      style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+      onPointerEnter={e => { const el = e.currentTarget; el.style.background = danger ? 'rgba(180,60,50,0.10)' : 'var(--surface-hover)'; el.style.color = danger ? '#B43C32' : 'var(--text-primary)' }}
+      onPointerLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = 'var(--text-tertiary)' }}>
+      {children}
+    </button>
+  )
 }
