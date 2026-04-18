@@ -29,56 +29,63 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
   const w = Math.max(MIN_W, sz.width)
   const h = Math.max(MIN_H, sz.height)
 
-  const headerRef = useRef<HTMLElement>(null)
-  const dragOrigin = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
+  // Drag med document-level listeners — fungerar även utan setPointerCapture
+  const dragRef = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
 
-  const resizeOrigin = useRef<{ dir: string; sw: number; sh: number; mx: number; my: number } | null>(null)
-
-  // Drag via Pointer Events — fungerar i React 19, ingen react-draggable behövs
   const onHeaderPointerDown = (e: React.PointerEvent<HTMLElement>) => {
     if ((e.target as HTMLElement).closest('button')) return
     if (isLocked) return
     e.preventDefault()
     actions.bringToFront(layout.moduleId)
-    dragOrigin.current = { px: pos.x, py: pos.y, mx: e.clientX, my: e.clientY }
-    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    dragRef.current = { px: pos.x, py: pos.y, mx: e.clientX, my: e.clientY }
+
+    const move = (ev: PointerEvent) => {
+      if (!dragRef.current) return
+      actions.updateModulePosition({
+        moduleId: layout.moduleId,
+        position: {
+          x: Math.max(0, dragRef.current.px + ev.clientX - dragRef.current.mx),
+          y: Math.max(0, dragRef.current.py + ev.clientY - dragRef.current.my),
+        }
+      })
+    }
+    const up = () => {
+      dragRef.current = null
+      document.removeEventListener('pointermove', move)
+      document.removeEventListener('pointerup', up)
+    }
+    document.addEventListener('pointermove', move)
+    document.addEventListener('pointerup', up)
   }
 
-  const onHeaderPointerMove = (e: React.PointerEvent<HTMLElement>) => {
-    if (!dragOrigin.current) return
-    const dx = e.clientX - dragOrigin.current.mx
-    const dy = e.clientY - dragOrigin.current.my
-    actions.updateModulePosition({
-      moduleId: layout.moduleId,
-      position: {
-        x: Math.max(0, dragOrigin.current.px + dx),
-        y: Math.max(0, dragOrigin.current.py + dy),
+  // Resize med document-level listeners
+  const resizeRef = useRef<{ dir: string; sw: number; sh: number; mx: number; my: number } | null>(null)
+
+  const makeResizeHandlers = (dir: string) => ({
+    onPointerDown: (e: React.PointerEvent<HTMLSpanElement>) => {
+      if (isLocked) return
+      e.preventDefault()
+      e.stopPropagation()
+      actions.bringToFront(layout.moduleId)
+      resizeRef.current = { dir, sw: w, sh: h, mx: e.clientX, my: e.clientY }
+
+      const move = (ev: PointerEvent) => {
+        if (!resizeRef.current) return
+        const dx = ev.clientX - resizeRef.current.mx
+        const dy = ev.clientY - resizeRef.current.my
+        const nw = (dir === 'e' || dir === 'se') ? Math.max(MIN_W, resizeRef.current.sw + dx) : w
+        const nh = (dir === 's' || dir === 'se') ? Math.max(MIN_H, resizeRef.current.sh + dy) : h
+        actions.updateModuleSize({ moduleId: layout.moduleId, size: { width: nw, height: nh } })
       }
-    })
-  }
-
-  const onHeaderPointerUp = () => { dragOrigin.current = null }
-
-  // Resize
-  const onResizePointerDown = (dir: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
-    if (isLocked) return
-    e.preventDefault()
-    e.stopPropagation()
-    actions.bringToFront(layout.moduleId)
-    resizeOrigin.current = { dir, sw: w, sh: h, mx: e.clientX, my: e.clientY }
-    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
-  }
-
-  const onResizePointerMove = (dir: string) => (e: React.PointerEvent<HTMLSpanElement>) => {
-    if (!resizeOrigin.current || resizeOrigin.current.dir !== dir) return
-    const dx = e.clientX - resizeOrigin.current.mx
-    const dy = e.clientY - resizeOrigin.current.my
-    const nw = dir.includes('e') || dir === 'se' ? Math.max(MIN_W, resizeOrigin.current.sw + dx) : w
-    const nh = dir.includes('s') || dir === 'se' ? Math.max(MIN_H, resizeOrigin.current.sh + dy) : h
-    actions.updateModuleSize({ moduleId: layout.moduleId, size: { width: nw, height: nh } })
-  }
-
-  const onResizePointerUp = () => { resizeOrigin.current = null }
+      const up = () => {
+        resizeRef.current = null
+        document.removeEventListener('pointermove', move)
+        document.removeEventListener('pointerup', up)
+      }
+      document.addEventListener('pointermove', move)
+      document.addEventListener('pointerup', up)
+    }
+  })
 
   if (layout.minimized) {
     return (
@@ -105,13 +112,9 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       style={windowStyle}
       onPointerDown={() => actions.bringToFront(layout.moduleId)}
     >
-      {/* Header — drag handle */}
       <header
-        ref={headerRef}
         className="module-header"
         onPointerDown={onHeaderPointerDown}
-        onPointerMove={onHeaderPointerMove}
-        onPointerUp={onHeaderPointerUp}
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 14px', minHeight: 44, flexShrink: 0,
@@ -125,42 +128,30 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
           {config.title}
         </span>
         <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-          <WinBtn label="Minimera" onClick={() => actions.minimizeModule(layout.moduleId)}>
-            <Minus size={14} />
-          </WinBtn>
+          <WinBtn label="Minimera" onClick={() => actions.minimizeModule(layout.moduleId)}><Minus size={14} /></WinBtn>
           {config.supportsFullscreen && (
             <WinBtn label={isFullscreen ? 'Avsluta helskärm' : 'Helskärm'} onClick={() => actions.toggleModuleFullscreen(layout.moduleId)}>
               {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </WinBtn>
           )}
-          <WinBtn label="Stäng" onClick={() => actions.closeModule(layout.moduleId)} danger>
-            <X size={14} />
-          </WinBtn>
+          <WinBtn label="Stäng" onClick={() => actions.closeModule(layout.moduleId)} danger><X size={14} /></WinBtn>
         </div>
       </header>
 
-      {/* Content */}
       <div className="module-content">{children}</div>
 
-      {/* Resize handles */}
       {!isLocked && !isFullscreen && !isMobile && (
         <>
           <span className="module-resize module-resize-right"
-            onPointerDown={onResizePointerDown('e')}
-            onPointerMove={onResizePointerMove('e')}
-            onPointerUp={onResizePointerUp}
+            {...makeResizeHandlers('e')}
             style={{ position: 'absolute', right: 0, top: 0, width: 8, height: '100%', cursor: 'ew-resize', touchAction: 'none' }}
           />
           <span className="module-resize module-resize-bottom"
-            onPointerDown={onResizePointerDown('s')}
-            onPointerMove={onResizePointerMove('s')}
-            onPointerUp={onResizePointerUp}
+            {...makeResizeHandlers('s')}
             style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', height: 8, cursor: 'ns-resize', touchAction: 'none' }}
           />
           <span className="module-resize module-resize-diagonal"
-            onPointerDown={onResizePointerDown('se')}
-            onPointerMove={onResizePointerMove('se')}
-            onPointerUp={onResizePointerUp}
+            {...makeResizeHandlers('se')}
             style={{ position: 'absolute', bottom: 0, right: 0, width: 18, height: 18, cursor: 'nwse-resize', touchAction: 'none' }}
           />
         </>
@@ -173,8 +164,8 @@ function WinBtn({ label, onClick, danger, children }: { label: string; onClick: 
   return (
     <button type="button" aria-label={label} onClick={onClick}
       style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, flexShrink: 0 }}
-      onPointerEnter={e => { const el = e.currentTarget; el.style.background = danger ? 'rgba(180,60,50,0.10)' : 'var(--surface-hover)'; el.style.color = danger ? '#B43C32' : 'var(--text-primary)' }}
-      onPointerLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = 'var(--text-tertiary)' }}>
+      onMouseEnter={e => { const el = e.currentTarget; el.style.background = danger ? 'rgba(180,60,50,0.10)' : 'var(--surface-hover)'; el.style.color = danger ? '#B43C32' : 'var(--text-primary)' }}
+      onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = 'var(--text-tertiary)' }}>
       {children}
     </button>
   )
