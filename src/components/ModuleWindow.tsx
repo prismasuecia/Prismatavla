@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { Rnd } from 'react-rnd'
 import { Minus, X, Maximize2, Minimize2 } from 'lucide-react'
@@ -42,6 +42,15 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     height: layout.size?.height ?? fallbackSize.height,
   }
   const viewportLimits = useViewportLimits()
+  const rndRef = useRef<Rnd>(null)
+
+  // Sätt drag-handle klassen på Rnd's interna wrapper-div via ref
+  useEffect(() => {
+    if (rndRef.current && !isLocked) {
+      const el = rndRef.current.getSelfElement()
+      if (el) el.classList.add('drag-handle')
+    }
+  }, [isLocked])
 
   const resizeHandles = isLocked ? undefined : {
     right: <span className="module-resize module-resize-right" aria-hidden="true" />,
@@ -71,36 +80,47 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     )
   }
 
+  const shellContent = (
+    <>
+      <header className="module-header drag-handle">
+        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
+          {config.title}
+        </span>
+        <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
+          <WinBtn aria-label="Minimera" onClick={handleMinimize}><Minus size={14} /></WinBtn>
+          {config.supportsFullscreen && (
+            <WinBtn aria-label={isFullscreen ? 'Avsluta' : 'Helskärm'} onClick={handleToggleFullscreen}>
+              {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
+            </WinBtn>
+          )}
+          <WinBtn aria-label="Stäng" onClick={handleClose} danger><X size={14} /></WinBtn>
+        </div>
+      </header>
+      <div className="module-content">
+        {children}
+      </div>
+    </>
+  )
+
   if (isFullscreen) {
     return (
-      <div
-        className={clsx('module-window', 'module-window-fullscreen', { 'is-active': isActive })}
-        style={{ zIndex: layout.zIndex }}
-        onMouseDown={handleBringToFront}
-      >
-        <WindowHeader title={config.title} isFullscreen supportsFullscreen={config.supportsFullscreen}
-          onMinimize={handleMinimize} onClose={handleClose} onToggleFullscreen={handleToggleFullscreen} />
-        <div className="module-content">{children}</div>
+      <div className={clsx('module-window', 'module-window-fullscreen', { 'is-active': isActive })} style={{ zIndex: layout.zIndex }} onMouseDown={handleBringToFront}>
+        {shellContent}
       </div>
     )
   }
 
   if (isMobile) {
     return (
-      <div
-        className={clsx('module-window', { 'is-active': isActive })}
-        style={{ position: 'fixed', inset: '1rem', width: 'auto', zIndex: layout.zIndex }}
-        onMouseDown={handleBringToFront}
-      >
-        <WindowHeader title={config.title} supportsFullscreen={config.supportsFullscreen}
-          onMinimize={handleMinimize} onClose={handleClose} onToggleFullscreen={handleToggleFullscreen} />
-        <div className="module-content">{children}</div>
+      <div className={clsx('module-window', { 'is-active': isActive })} style={{ position: 'fixed', inset: '1rem', width: 'auto', zIndex: layout.zIndex }} onMouseDown={handleBringToFront}>
+        {shellContent}
       </div>
     )
   }
 
   return (
     <Rnd
+      ref={rndRef}
       className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
       style={{ zIndex: layout.zIndex }}
       position={layout.position ?? { x: 100, y: 100 }}
@@ -132,62 +152,24 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         actions.updateModulePosition({ moduleId: layout.moduleId, position: position ?? layout.position })
       }}
     >
-      <WindowHeader title={config.title} supportsFullscreen={config.supportsFullscreen}
-        onMinimize={handleMinimize} onClose={handleClose} onToggleFullscreen={handleToggleFullscreen} />
-      <div className="module-content module-surface">{children}</div>
+      {shellContent}
     </Rnd>
   )
 }
 
-interface WindowHeaderProps {
-  title: string
-  supportsFullscreen: boolean
-  onMinimize: () => void
-  onClose: () => void
-  onToggleFullscreen?: () => void
-  isFullscreen?: boolean
-}
-
-function WindowHeader({ title, supportsFullscreen, onMinimize, onClose, onToggleFullscreen, isFullscreen }: WindowHeaderProps) {
-  const btnStyle: React.CSSProperties = {
-    width: 28, height: 28, border: 'none', background: 'transparent',
-    borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    cursor: 'pointer', padding: 0, flexShrink: 0,
-  }
+interface WinBtnProps { 'aria-label': string; onClick: () => void; danger?: boolean; children: ReactNode }
+function WinBtn({ 'aria-label': label, onClick, danger, children }: WinBtnProps) {
   return (
-    <div
-      className="module-header drag-handle"
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '11px 14px', borderBottom: '1px solid var(--border-subtle)',
-        cursor: 'grab', userSelect: 'none', flexShrink: 0,
-        background: 'var(--surface-primary)', minHeight: 44,
-      }}
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      style={{ width: 28, height: 28, border: 'none', background: 'transparent', borderRadius: 'var(--radius-sm)', color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: 0, flexShrink: 0 }}
+      onMouseEnter={e => { const el = e.currentTarget; el.style.background = danger ? 'rgba(180,60,50,0.10)' : 'var(--surface-hover)'; el.style.color = danger ? '#B43C32' : 'var(--text-primary)'; }}
+      onMouseLeave={e => { const el = e.currentTarget; el.style.background = 'transparent'; el.style.color = 'var(--text-tertiary)'; }}
     >
-      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500, color: 'var(--text-secondary)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', pointerEvents: 'none' }}>
-        {title}
-      </span>
-      <div style={{ display: 'flex', gap: 2, flexShrink: 0 }}>
-        <button type="button" aria-label="Minimera" onClick={onMinimize} style={btnStyle}
-          onMouseEnter={e => { const el = e.currentTarget; el.style.background='var(--surface-hover)'; el.style.color='var(--text-primary)'; }}
-          onMouseLeave={e => { const el = e.currentTarget; el.style.background='transparent'; el.style.color='var(--text-tertiary)'; }}>
-          <Minus size={14} />
-        </button>
-        {supportsFullscreen && onToggleFullscreen && (
-          <button type="button" aria-label={isFullscreen ? 'Avsluta helskärm' : 'Helskärm'} onClick={onToggleFullscreen} style={btnStyle}
-            onMouseEnter={e => { const el = e.currentTarget; el.style.background='var(--surface-hover)'; el.style.color='var(--text-primary)'; }}
-            onMouseLeave={e => { const el = e.currentTarget; el.style.background='transparent'; el.style.color='var(--text-tertiary)'; }}>
-            {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
-          </button>
-        )}
-        <button type="button" aria-label="Stäng" onClick={onClose} style={btnStyle}
-          onMouseEnter={e => { const el = e.currentTarget; el.style.background='rgba(180,60,50,0.10)'; el.style.color='#B43C32'; }}
-          onMouseLeave={e => { const el = e.currentTarget; el.style.background='transparent'; el.style.color='var(--text-tertiary)'; }}>
-          <X size={14} />
-        </button>
-      </div>
-    </div>
+      {children}
+    </button>
   )
 }
 
