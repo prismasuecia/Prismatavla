@@ -22,18 +22,17 @@ export function ClockWindow() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      flex: 1,
-      height: '100%',
-      gap: 6,
-      padding: '16px',
+      padding: '32px 24px',
+      gap: 8,
       fontFamily: 'var(--font-sans)',
+      minHeight: 200,
     }}>
       <div style={{ fontSize: 12, color: 'var(--text-tertiary)', letterSpacing: '0.04em', textTransform: 'capitalize' }}>
         {DAYS[now.getDay()]} {now.getDate()} {MONTHS[now.getMonth()]}
       </div>
       <div style={{
         fontFamily: 'var(--font-mono)',
-        fontSize: 60,
+        fontSize: 56,
         fontWeight: 300,
         color: 'var(--text-primary)',
         letterSpacing: '-0.04em',
@@ -42,9 +41,9 @@ export function ClockWindow() {
         alignItems: 'baseline',
       }}>
         <span>{hh}</span>
-        <span style={{ opacity: blink ? 1 : 0.2, transition: 'opacity 80ms', margin: '0 1px', color: 'var(--text-tertiary)' }}>:</span>
+        <span style={{ opacity: blink ? 1 : 0.15, transition: 'opacity 80ms', margin: '0 2px', color: 'var(--text-tertiary)' }}>:</span>
         <span>{mm}</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 24, fontWeight: 300, color: 'var(--text-tertiary)', marginLeft: 6, marginBottom: 4 }}>{ss}</span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 22, fontWeight: 300, color: 'var(--text-tertiary)', marginLeft: 6, marginBottom: 4 }}>{ss}</span>
       </div>
     </div>
   )
