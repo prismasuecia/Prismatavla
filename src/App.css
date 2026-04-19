@@ -324,22 +324,4 @@
 }
 /* === /TRAFFIC BADGE === */
 
-/* === TUR I TUR: class-form layout === */
-.wheel-class-form {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.wheel-class-form input[type="text"] {
-  flex: 1;
-  min-width: 120px;
-}
-
-.wheel-class-form button {
-  flex-shrink: 0;
-  width: auto !important;
-}
-/* === /TUR I TUR === */
+ */
