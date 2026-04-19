@@ -244,24 +244,56 @@
 
  */
 
-/* === TRAFIKLJUS: knappar med span+small vertikal === */
-.module-content button {
-  flex-wrap: wrap !important;
+ */
+
+/* === TRAFIKLJUS: .traffic-window layout fix === */
+.traffic-window {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
 }
-.module-content button > span {
+
+.traffic-window button {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-subtle);
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 150ms ease;
+}
+
+.traffic-window button.active {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+}
+
+.traffic-window button > span {
   display: block;
   font-size: 14px;
   font-weight: 500;
-  line-height: 1.3;
   color: var(--text-primary);
-  flex: 1 1 auto;
+  line-height: 1.3;
 }
-.module-content button > small {
+
+.traffic-window button.active > span {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.traffic-window button > small {
   display: block;
   font-size: 11px;
   color: var(--text-tertiary);
   line-height: 1.3;
-  width: 100%;
   margin-top: 1px;
 }
 /* === /TRAFIKLJUS === */
