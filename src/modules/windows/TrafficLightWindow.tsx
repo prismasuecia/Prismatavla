@@ -1,45 +1,63 @@
 import { useBoardStore } from '../../store/useBoardStore'
+import type { TrafficNorm } from '../../store/useBoardStore'
 
-const LEVELS = [
-  { id: 'tyst'  as const, label: 'Tyst',  sub: 'Ingen pratar', dot: '#2D5C45', bg: '#EAF2EC', color: '#1a3d2e' },
-  { id: 'viska' as const, label: 'Viska', sub: 'Låg röst',   dot: '#C4973F', bg: '#F5EFE6', color: '#5c4010' },
-  { id: 'prata' as const, label: 'Prata', sub: 'Samtalston',  dot: '#C43F3F', bg: '#F5E8E8', color: '#5c1010' },
+const LEVELS: { id: TrafficNorm; label: string; description: string; color: string; activeColor: string; activeBg: string }[] = [
+  { id: 'tyst',  label: 'Tyst',  description: 'Ingen pratar', color: '#4a8c6a', activeColor: '#2D5C45', activeBg: '#EAF2EC' },
+  { id: 'viska', label: 'Viska', description: 'Låg röst',  color: '#8c7040', activeColor: '#6b5020', activeBg: '#F5EFE6' },
+  { id: 'prata', label: 'Prata', description: 'Samtalston', color: '#8c4a4a', activeColor: '#6b2020', activeBg: '#F5E8E8' },
 ]
 
 export function TrafficLightWindow() {
-  const traffic = useBoardStore(s => s.traffic)
-  const actions  = useBoardStore(s => s.actions)
-  const active   = LEVELS.find(l => l.id === traffic) ?? LEVELS[2]
+  const traffic = useBoardStore((state) => state.traffic)
+  const actions = useBoardStore((state) => state.actions)
 
   return (
-    <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{
-        background: active.bg, border: '1.5px solid ' + active.dot + '55',
-        borderRadius: 12, padding: '12px 16px',
-        display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4,
-      }}>
-        <div style={{ width: 12, height: 12, borderRadius: '50%', background: active.dot, flexShrink: 0 }} />
-        <div>
-          <div style={{ fontWeight: 600, fontSize: 16, color: active.color }}>{active.label}</div>
-          <div style={{ fontSize: 12, color: active.color, opacity: 0.7, marginTop: 2 }}>{active.sub}</div>
-        </div>
-      </div>
-
-      {LEVELS.map(lv => {
-        const on = traffic === lv.id
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 6, padding: '12px 14px' }}>
+      {LEVELS.map((level) => {
+        const isActive = traffic === level.id
         return (
-          <button key={lv.id} type="button" onClick={() => actions.setTrafficNorm(lv.id)}
+          <button
+            key={level.id}
+            type="button"
+            onClick={() => actions.setTrafficNorm(level.id)}
             style={{
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '9px 14px', borderRadius: 10,
-              border: on ? '1.5px solid ' + lv.dot : '1.5px solid #e0ddd8',
-              background: on ? lv.bg : 'transparent',
-              cursor: 'pointer', fontFamily: 'inherit',
-            }}>
-            <div style={{ width: 9, height: 9, borderRadius: '50%', background: on ? lv.dot : '#ccc', flexShrink: 0 }} />
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1 }}>
-              <span style={{ fontSize: 13, fontWeight: on ? 600 : 400, color: on ? lv.color : '#333' }}>{lv.label}</span>
-              <span style={{ fontSize: 11, color: '#999' }}>{lv.sub}</span>
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 12,
+              padding: '10px 14px',
+              borderRadius: 10,
+              border: isActive
+                ? '1.5px solid ' + level.activeColor
+                : '1.5px solid var(--border-subtle)',
+              background: isActive ? level.activeBg : 'transparent',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-sans)',
+              textAlign: 'left',
+              transition: 'all 150ms ease',
+            }}
+          >
+            <div style={{
+              width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+              background: isActive ? level.activeColor : 'var(--border-medium)',
+              transition: 'background 150ms ease',
+            }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <span style={{
+                fontSize: 14,
+                fontWeight: isActive ? 600 : 400,
+                color: isActive ? level.activeColor : 'var(--text-primary)',
+                lineHeight: 1.3,
+              }}>
+                {level.label}
+              </span>
+              <span style={{
+                fontSize: 11,
+                color: 'var(--text-tertiary)',
+                lineHeight: 1.3,
+              }}>
+                {level.description}
+              </span>
             </div>
           </button>
         )
