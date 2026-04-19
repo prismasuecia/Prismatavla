@@ -96,11 +96,11 @@ export function SoundMeterWindow() {
       case 'listening':
         return 'Lyssnar...'
       case 'denied':
-        return 'TillstÃ¥nd nekades'
+        return 'Tillstånd nekades'
       case 'unsupported':
         return 'Inte tillgÃ¤nglig'
       default:
-        return 'AvstÃ¤ngd'
+        return 'Avstängd'
     }
   }, [status, statusMessage])
 
