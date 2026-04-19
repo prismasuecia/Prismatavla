@@ -1,9 +1,9 @@
 import { useBoardStore } from '../../store/useBoardStore'
 
 const LEVELS = [
-  { id: 'silent'  as const, label: 'Tyst',  sub: 'Ingen pratar', dot: '#2D5C45', bg: '#EAF2EC', color: '#1a3d2e' },
-  { id: 'whisper' as const, label: 'Viska', sub: 'L\u00e5g r\u00f6st',   dot: '#C4973F', bg: '#F5EFE6', color: '#5c4010' },
-  { id: 'talk'    as const, label: 'Prata', sub: 'Samtalston',  dot: '#C43F3F', bg: '#F5E8E8', color: '#5c1010' },
+  { id: 'tyst'  as const, label: 'Tyst',  sub: 'Ingen pratar', dot: '#2D5C45', bg: '#EAF2EC', color: '#1a3d2e' },
+  { id: 'viska' as const, label: 'Viska', sub: 'Låg röst',   dot: '#C4973F', bg: '#F5EFE6', color: '#5c4010' },
+  { id: 'prata' as const, label: 'Prata', sub: 'Samtalston',  dot: '#C43F3F', bg: '#F5E8E8', color: '#5c1010' },
 ]
 
 export function TrafficLightWindow() {
@@ -13,7 +13,6 @@ export function TrafficLightWindow() {
 
   return (
     <div style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {/* Aktiv status */}
       <div style={{
         background: active.bg, border: '1.5px solid ' + active.dot + '55',
         borderRadius: 12, padding: '12px 16px',
@@ -26,7 +25,6 @@ export function TrafficLightWindow() {
         </div>
       </div>
 
-      {/* Alternativknappar */}
       {LEVELS.map(lv => {
         const on = traffic === lv.id
         return (
