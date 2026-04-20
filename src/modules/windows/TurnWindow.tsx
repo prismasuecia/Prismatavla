@@ -415,148 +415,160 @@ export function TurnWindow() {
   }
 
 
+
+  // Beräkna storlek för PERFEKT cirkel
+  const wheelDiameter = Math.min(canvasSize, 280)
+
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
+    <div style={{ display:'flex', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
 
-      {/* Header */}
-      <div style={{ padding:'10px 14px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
-        <div>
-          <div style={{ fontSize:15, fontWeight:600, color:'var(--text-primary)', letterSpacing:'-0.01em' }}>
-            {names.length > 0 ? names.length+' namn' : 'Inga namn'}
+      {/* === VÄNSTER: Hjulet === */}
+      <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
+
+        {/* Header-rad */}
+        <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'baseline', justifyContent:'space-between', flexShrink:0 }}>
+          <div>
+            <span style={{ fontSize:22, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.02em' }}>{names.length}</span>
+            <span style={{ fontSize:13, color:'var(--text-tertiary)', marginLeft:4 }}>namn</span>
+            {drawnNames.length > 0 && (
+              <span style={{ fontSize:12, color:'var(--text-tertiary)', marginLeft:8 }}>· {drawnNames.length} dragna</span>
+            )}
           </div>
-          <div style={{ fontSize:11, color:'var(--text-tertiary)', marginTop:1 }}>
-            {drawnNames.length} dragna · {names.length - drawnNames.length} kvar
+          <div style={{ display:'flex', gap:6 }}>
+            {drawnNames.length > 0 && (
+              <button type="button" onClick={handleResetWheel}
+                style={{ padding:'4px 12px', borderRadius:20, border:'1px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+                Återställ
+              </button>
+            )}
+            <button type="button" onClick={handleClearDrawn}
+              style={{ padding:'4px 12px', borderRadius:20, border:'1px solid rgba(180,60,50,0.25)', background:'transparent', fontSize:12, color:'#B43C32', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              Töm
+            </button>
           </div>
         </div>
-        <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-          <Pill onClick={handleResetWheel} label="Återställ" />
-          <Pill onClick={handleClearDrawn} label="Töm" danger />
-        </div>
-      </div>
 
-      {/* Hjul + sidopanel */}
-      <div style={{ display:'flex', flex:1, overflow:'hidden' }}>
-
-        {/* Vänster: Hjulet */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'16px 12px', minWidth:0, gap:12 }}>
+        {/* Hjul-area — ALLTID kvadratisk */}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 16px 12px', overflow:'hidden' }}>
           {names.length === 0 ? (
-            <div style={{ textAlign:'center' }}>
-              <div style={{ fontSize:48, opacity:0.12, lineHeight:1 }}>&#9711;</div>
-              <div style={{ fontSize:14, fontWeight:500, color:'var(--text-secondary)', marginTop:10 }}>Lägg till namn</div>
-              <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:4 }}>för att börja snurra</div>
+            <div style={{ textAlign:'center', padding:32 }}>
+              <div style={{ fontSize:56, opacity:0.08 }}>◎</div>
+              <div style={{ fontSize:15, fontWeight:500, color:'var(--text-secondary)', marginTop:12 }}>Lägg till namn</div>
+              <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:4 }}>och tryck Snurra</div>
             </div>
           ) : (
             <>
-              <canvas ref={canvasRef} width={canvasSize} height={canvasSize}
-                style={{ borderRadius:'50%', maxWidth:'100%', maxHeight:200, cursor:isSpinning?'default':'pointer', flexShrink:0 }}
-                onClick={isSpinning ? undefined : handleSpin} />
-              {lastDrawn && (
-                <div style={{ textAlign:'center' }}>
-                  <div style={{ fontSize:10, fontWeight:600, color:'var(--text-tertiary)', textTransform:'uppercase', letterSpacing:'0.08em' }}>Vald</div>
-                  <div style={{ fontSize:22, fontWeight:700, color:'var(--accent)', marginTop:2, letterSpacing:'-0.02em' }}>{lastDrawn}</div>
-                </div>
-              )}
+              {/* Canvas med exakt kvadratisk container — detta fixar oval-problemet */}
+              <div style={{ width:wheelDiameter, height:wheelDiameter, flexShrink:0, position:'relative', cursor:isSpinning?'default':'pointer' }}
+                onClick={isSpinning ? undefined : handleSpin}>
+                <canvas ref={canvasRef} width={canvasSize} height={canvasSize}
+                  style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', borderRadius:'50%' }} />
+              </div>
+
+              {/* Vald */}
+              <div style={{ marginTop:14, textAlign:'center', minHeight:52 }}>
+                {lastDrawn ? (
+                  <>
+                    <div style={{ fontSize:10, fontWeight:600, color:'var(--text-tertiary)', textTransform:'uppercase', letterSpacing:'0.1em' }}>Vald</div>
+                    <div style={{ fontSize:26, fontWeight:700, color:'var(--accent)', letterSpacing:'-0.02em', marginTop:2 }}>{lastDrawn}</div>
+                  </>
+                ) : (
+                  <div style={{ fontSize:12, color:'var(--text-tertiary)' }}>Tryck på hjulet eller knappen</div>
+                )}
+              </div>
+
+              {/* Snurra-knapp */}
               <button type="button" onClick={handleSpin} disabled={isSpinning}
-                style={{ padding:'9px 28px', borderRadius:'var(--radius-full)', border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:14, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms' }}>
+                style={{ marginTop:10, padding:'10px 36px', borderRadius:24, border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:15, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms', letterSpacing:'-0.01em' }}>
                 {isSpinning ? 'Snurrar…' : 'Snurra'}
               </button>
             </>
           )}
+        </div>
+
+        {/* Toggle + status */}
+        <div style={{ padding:'8px 16px 12px', borderTop:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
             onClick={() => setExcludeDrawn(v => !v)}>
-            <div style={{ width:34, height:20, borderRadius:10, background:excludeDrawn?'var(--accent)':'var(--border-medium)', position:'relative', transition:'background 200ms', flexShrink:0 }}>
-              <div style={{ position:'absolute', width:14, height:14, borderRadius:'50%', background:'#fff', top:3, left:excludeDrawn?17:3, transition:'left 200ms', boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
+            <div style={{ width:36, height:20, borderRadius:10, background:excludeDrawn?'var(--accent)':'var(--border-medium)', position:'relative', transition:'background 220ms', flexShrink:0 }}>
+              <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:2, left:excludeDrawn?18:2, transition:'left 220ms ease', boxShadow:'0 1px 4px rgba(0,0,0,0.18)' }} />
             </div>
             <span style={{ fontSize:12, color:'var(--text-secondary)', userSelect:'none' }}>Exkludera dragna</span>
           </div>
-        </div>
-
-        {/* Höger: Panel */}
-        <div style={{ width:196, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflow:'hidden', flexShrink:0 }}>
-
-          {/* Lägg till namn */}
-          <div style={{ padding:'12px 12px 10px' }}>
-            <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:6 }}>Lägg till</div>
-            <textarea value={namesInput} onChange={e => setNamesInput(e.target.value)}
-              placeholder="Klistra in namn…"
-              rows={4}
-              style={{ width:'100%', padding:'7px 9px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', resize:'none', outline:'none', boxSizing:'border-box', lineHeight:1.6, display:'block' }} />
-            <div style={{ display:'flex', gap:5, marginTop:6 }}>
-              <button type="button" onClick={handleAddNames}
-                style={{ flex:1, padding:'6px 0', borderRadius:'var(--radius-full)', border:'none', background:'var(--accent)', color:'#fff', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-                Lägg till
-              </button>
-              <button type="button" onClick={handleUseActiveClass}
-                style={{ flex:1, padding:'6px 0', borderRadius:'var(--radius-full)', border:'1.5px solid var(--border-medium)', background:'transparent', color:'var(--text-secondary)', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-                Klass
-              </button>
-            </div>
-          </div>
-
-          {/* Sparade listor */}
-          <div style={{ padding:'10px 12px', borderTop:'1px solid var(--border-subtle)' }}>
-            <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:6 }}>Sparade listor</div>
-            <input type="text" value={className} onChange={e => setClassName(e.target.value)}
-              placeholder="Namn på listan"
-              style={{ width:'100%', padding:'6px 9px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', boxSizing:'border-box', display:'block', marginBottom:5 }} />
-            <button type="button" onClick={handleSaveClass}
-              style={{ width:'100%', padding:'6px 0', borderRadius:'var(--radius-full)', border:'none', background:'var(--accent)', color:'#fff', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)', marginBottom:6, display:'block', boxSizing:'border-box' }}>
-              Spara
-            </button>
-            <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-              style={{ width:'100%', padding:'6px 9px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:selectedClass?'var(--text-primary)':'var(--text-tertiary)', fontFamily:'var(--font-sans)', outline:'none', boxSizing:'border-box', appearance:'none', cursor:'pointer', marginBottom:6, display:'block' }}>
-              <option value="">Välj lista…</option>
-              {classOptions.map(key => (
-                <option key={key} value={key}>{key}</option>
-              ))}
-            </select>
-            <div style={{ display:'flex', gap:4 }}>
-              <button type="button" onClick={handleLoadClass}
-                style={{ flex:1, padding:'5px 0', borderRadius:'var(--radius-full)', border:'1.5px solid var(--border-medium)', background:'transparent', color:'var(--text-secondary)', fontSize:11, fontWeight:500, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-                Ladda
-              </button>
-              <button type="button" onClick={handleDeleteClass}
-                style={{ flex:1, padding:'5px 0', borderRadius:'var(--radius-full)', border:'1.5px solid var(--border-subtle)', background:'transparent', color:'var(--text-tertiary)', fontSize:11, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-                Ta bort
-              </button>
-            </div>
-          </div>
-
-          {/* Namn på hjulet */}
-          {names.length > 0 && (
-            <div style={{ flex:1, overflow:'auto', padding:'10px 12px', borderTop:'1px solid var(--border-subtle)' }}>
-              <div style={{ fontSize:10, fontWeight:600, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:6 }}>På hjulet</div>
-              {names.map((name, i) => {
-                const drawn = drawnNames.includes(name);
-                return (
-                  <div key={i} style={{ fontSize:12, color:drawn?'var(--text-tertiary)':'var(--text-primary)', textDecoration:drawn?'line-through':'none', padding:'3px 0', borderBottom:'1px solid var(--border-subtle)' }}>
-                    {name}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {statusMessage && <span style={{ fontSize:11, color:'var(--accent)', fontWeight:500 }}>{statusMessage}</span>}
         </div>
       </div>
 
-      {statusMessage && (
-        <div style={{ padding:'7px 14px', borderTop:'1px solid var(--border-subtle)', fontSize:12, color:'var(--accent)', fontWeight:500, flexShrink:0 }}>
-          {statusMessage}
+      {/* === HÖGER: Panel === */}
+      <div style={{ width:200, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflow:'hidden', flexShrink:0 }}>
+
+        {/* Lägg till */}
+        <div style={{ padding:'14px 14px 12px', borderBottom:'1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>Lägg till namn</div>
+          <textarea value={namesInput} onChange={e => setNamesInput(e.target.value)}
+            placeholder="Klistra in namn, ett per rad…"
+            rows={5}
+            style={{ width:'100%', padding:'8px 10px', borderRadius:10, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', resize:'none', outline:'none', boxSizing:'border-box', lineHeight:1.7, display:'block' }} />
+          <div style={{ display:'flex', gap:6, marginTop:8 }}>
+            <button type="button" onClick={handleAddNames}
+              style={{ flex:2, padding:'7px 0', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              Lägg till
+            </button>
+            <button type="button" onClick={handleUseActiveClass}
+              style={{ flex:1, padding:'7px 0', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', color:'var(--text-secondary)', fontSize:12, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              Klass
+            </button>
+          </div>
         </div>
-      )}
+
+        {/* Sparade listor */}
+        <div style={{ padding:'12px 14px', borderBottom:'1px solid var(--border-subtle)' }}>
+          <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>Sparade listor</div>
+          <input type="text" value={className} onChange={e => setClassName(e.target.value)}
+            placeholder="Namnge listan"
+            style={{ width:'100%', padding:'7px 10px', borderRadius:10, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', boxSizing:'border-box', display:'block', marginBottom:7 }} />
+          <button type="button" onClick={handleSaveClass}
+            style={{ width:'100%', padding:'7px 0', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)', marginBottom:8, display:'block', boxSizing:'border-box' }}>
+            Spara
+          </button>
+          <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
+            style={{ width:'100%', padding:'7px 10px', borderRadius:10, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:selectedClass?'var(--text-primary)':'var(--text-tertiary)', fontFamily:'var(--font-sans)', outline:'none', boxSizing:'border-box', appearance:'none', cursor:'pointer', marginBottom:7, display:'block' }}>
+            <option value="">Välj sparad lista…</option>
+            {classOptions.map(key => (
+              <option key={key} value={key}>{key}</option>
+            ))}
+          </select>
+          <div style={{ display:'flex', gap:5 }}>
+            <button type="button" onClick={handleLoadClass}
+              style={{ flex:1, padding:'6px 0', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', color:'var(--text-secondary)', fontSize:12, fontWeight:500, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              Ladda
+            </button>
+            <button type="button" onClick={handleDeleteClass}
+              style={{ flex:1, padding:'6px 0', borderRadius:20, border:'1.5px solid var(--border-subtle)', background:'transparent', color:'var(--text-tertiary)', fontSize:12, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              Ta bort
+            </button>
+          </div>
+        </div>
+
+        {/* Namn på hjulet */}
+        {names.length > 0 && (
+          <div style={{ flex:1, overflow:'auto', padding:'12px 14px' }}>
+            <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>På hjulet</div>
+            {names.map((name, i) => {
+              const drawn = drawnNames.includes(name);
+              return (
+                <div key={i} style={{ fontSize:12, padding:'4px 0', borderBottom:'1px solid var(--border-subtle)', color:drawn?'var(--text-tertiary)':'var(--text-primary)', textDecoration:drawn?'line-through':'none', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <span>{name}</span>
+                  {drawn && <span style={{ fontSize:10, color:'var(--text-tertiary)' }}>✓</span>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
-
-function Pill({ onClick, label, danger }: { onClick: () => void; label: string; danger?: boolean }) {
-  return (
-    <button type="button" onClick={onClick}
-      style={{ padding:'5px 12px', borderRadius:'var(--radius-full)', border:'1.5px solid '+(danger?'rgba(180,60,50,0.3)':'var(--border-medium)'), background:'transparent', fontSize:12, fontWeight:500, color:danger?'#B43C32':'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-      {label}
-    </button>
-  )
-}
-
 
 
 function parseNames(input: string) {
