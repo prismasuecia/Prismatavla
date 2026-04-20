@@ -417,7 +417,7 @@ export function TurnWindow() {
 
 
   // Beräkna storlek för PERFEKT cirkel
-  const wheelDiameter = Math.min(canvasSize, 220)
+  const wheelDiameter = Math.min(canvasSize, 200)
 
   return (
     <div style={{ display:'flex', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
@@ -449,7 +449,7 @@ export function TurnWindow() {
         </div>
 
         {/* Hjul-area — ALLTID kvadratisk */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'0 16px 12px', overflow:'hidden' }}>
+        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'12px 16px', overflow:'visible', minHeight:0 }}>
           {names.length === 0 ? (
             <div style={{ textAlign:'center', padding:32 }}>
               <div style={{ fontSize:56, opacity:0.08 }}>◎</div>
@@ -479,7 +479,7 @@ export function TurnWindow() {
 
               {/* Snurra-knapp */}
               <button type="button" onClick={handleSpin} disabled={isSpinning}
-                style={{ marginTop:10, padding:'10px 36px', borderRadius:24, border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:15, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms', letterSpacing:'-0.01em' }}>
+                style={{ marginTop:8, padding:'10px 36px', borderRadius:24, border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:15, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms', letterSpacing:'-0.01em' }}>
                 {isSpinning ? 'Snurrar…' : 'Snurra'}
               </button>
             </>
