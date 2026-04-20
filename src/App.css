@@ -325,3 +325,356 @@
 /* === /TRAFFIC BADGE === */
 
  */
+
+
+/* ============================================
+   TUR I TUR — Apple-inspirerad redesign
+   Inga synliga formulärelement, rent och luftigt
+   ============================================ */
+
+/* Layout-container */
+.turn-window-layout {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Vänster — hjulet */
+.turn-window-layout > *:first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 16px 12px;
+  border-right: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+/* Höger — kontroller */
+.turn-window-layout > *:last-child {
+  overflow-y: auto;
+  padding: 0;
+}
+
+/* Panel-cards — ta bort formulärkänsla */
+.panel-card {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 16px 16px 0 !important;
+  margin: 0 !important;
+}
+
+.panel-card + .panel-card {
+  border-top: 1px solid var(--border-subtle) !important;
+  margin-top: 0 !important;
+}
+
+/* Eyebrow-text — sektionsetikett */
+.eyebrow {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--text-tertiary) !important;
+  margin: 0 0 4px !important;
+}
+
+/* Panel-rubriker */
+.panel-card h3 {
+  font-size: 15px !important;
+  font-weight: 500 !important;
+  color: var(--text-primary) !important;
+  margin: 0 0 12px !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Hjul-header info */
+.turn-window-layout .wheel-header,
+.turn-window-layout header:first-child {
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+/* Hjulets namn */
+.turn-window-layout h2 {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+}
+
+.turn-window-layout .wheel-count {
+  font-size: 12px !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Hjul-canvas — centrera */
+.wheel-canvas-wrapper {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 1 !important;
+  width: 100% !important;
+}
+
+/* Snurra-knapp — stor och inbjudande */
+.turn-window-layout button[class*="spin"],
+.turn-window-layout .wheel-spin-btn,
+button.spin-btn {
+  width: 100% !important;
+  padding: 12px !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--accent) !important;
+  color: #fff !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  cursor: pointer !important;
+  margin-top: 8px !important;
+  transition: all 150ms ease !important;
+}
+
+/* INPUT — ta bort formulärkänslan */
+.turn-window-layout input[type="text"],
+.wheel-class-form input {
+  width: 100% !important;
+  padding: 9px 12px !important;
+  border-radius: var(--radius-md) !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: var(--surface-secondary) !important;
+  font-size: 14px !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans) !important;
+  outline: none !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+.turn-window-layout input[type="text"]:focus,
+.wheel-class-form input:focus {
+  border-color: var(--accent) !important;
+  background: var(--surface-primary) !important;
+}
+
+/* Alla knappar i turn-window — pill-stil */
+.turn-window-layout button {
+  padding: 7px 16px !important;
+  border-radius: var(--radius-full) !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  font-family: var(--font-sans) !important;
+  transition: all 120ms ease !important;
+  white-space: nowrap !important;
+}
+
+.turn-window-layout button:hover {
+  background: var(--surface-hover) !important;
+  border-color: var(--text-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Spara-knapp i class-form — inline */
+.wheel-class-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+.wheel-class-form button {
+  width: fit-content !important;
+  background: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #fff !important;
+  align-self: flex-start !important;
+  margin-bottom: 12px !important;
+}
+
+.wheel-class-form button:hover {
+  background: var(--accent-light, #3a7055) !important;
+  border-color: var(--accent-light, #3a7055) !important;
+  color: #fff !important;
+}
+
+/* Select — ta bort standardutseende */
+.turn-window-layout select {
+  width: 100% !important;
+  padding: 9px 12px !important;
+  border-radius: var(--radius-md) !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: var(--surface-secondary) !important;
+  font-size: 14px !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans) !important;
+  cursor: pointer !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  padding-right: 32px !important;
+  outline: none !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+  box-sizing: border-box !important;
+}
+
+/* Textarea för namnlistan */
+.turn-window-layout textarea {
+  width: 100% !important;
+  padding: 9px 12px !important;
+  border-radius: var(--radius-md) !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: var(--surface-secondary) !important;
+  font-size: 13px !important;
+  color: var(--text-primary) !important;
+  font-family: var(--font-sans) !important;
+  resize: none !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  display: block !important;
+}
+
+.turn-window-layout textarea:focus {
+  border-color: var(--accent) !important;
+}
+
+/* Knapp-rad i paneler */
+.wheel-action-row {
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  margin-top: 4px !important;
+}
+
+/* Checkbox — toggle-stil */
+.turn-window-layout input[type="checkbox"] {
+  width: 36px !important;
+  height: 20px !important;
+  appearance: none !important;
+  border-radius: 10px !important;
+  background: var(--border-medium) !important;
+  cursor: pointer !important;
+  position: relative !important;
+  transition: background 200ms !important;
+  flex-shrink: 0 !important;
+  border: none !important;
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin: 0 6px 0 0 !important;
+  padding: 0 !important;
+}
+.turn-window-layout input[type="checkbox"]:checked {
+  background: var(--accent) !important;
+}
+.turn-window-layout input[type="checkbox"]::after {
+  content: '' !important;
+  position: absolute !important;
+  width: 14px !important;
+  height: 14px !important;
+  background: white !important;
+  border-radius: 50% !important;
+  top: 3px !important;
+  left: 3px !important;
+  transition: transform 200ms !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2) !important;
+}
+.turn-window-layout input[type="checkbox"]:checked::after {
+  transform: translateX(16px) !important;
+}
+
+/* Senaste dragning */
+.turn-window-layout .wheel-last-draw,
+.turn-window-layout .last-draw {
+  text-align: center !important;
+  padding: 8px !important;
+  font-size: 13px !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Status-meddelanden */
+.turn-window-layout .status-message,
+.turn-window-layout p[class*="status"] {
+  font-size: 12px !important;
+  color: var(--accent) !important;
+  margin: 4px 0 !important;
+  font-weight: 500 !important;
+}
+
+/* Historik-lista */
+.turn-window-layout .history-list,
+.turn-window-layout ul {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+
+.turn-window-layout .history-list li,
+.turn-window-layout ul li {
+  font-size: 12px !important;
+  color: var(--text-secondary) !important;
+  padding: 4px 0 !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+}
+
+/* Aktiva namn-taggar */
+.turn-window-layout .name-tag,
+.turn-window-layout .active-name {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 3px 10px !important;
+  border-radius: var(--radius-full) !important;
+  background: var(--surface-secondary) !important;
+  font-size: 12px !important;
+  color: var(--text-secondary) !important;
+  margin: 2px !important;
+}
+
+/* NAMN PÅ HJULET header */
+.turn-window-layout .wheel-info {
+  text-align: center !important;
+  padding: 0 0 8px !important;
+}
+
+.turn-window-layout .wheel-name {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+}
+
+.turn-window-layout .wheel-stats {
+  font-size: 11px !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Exkludera dragna — toggle-rad */
+.turn-window-layout label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  padding: 6px 0 !important;
+  user-select: none !important;
+}
+
+/* Knapp-grupp i toppen */
+.wheel-controls {
+  display: flex !important;
+  gap: 6px !important;
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  padding: 4px 0 8px !important;
+}
