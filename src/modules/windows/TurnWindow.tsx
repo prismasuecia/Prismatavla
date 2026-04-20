@@ -419,20 +419,19 @@ export function TurnWindow() {
   // Beräkna storlek för PERFEKT cirkel
   const wheelDiameter = Math.min(canvasSize, 200)
 
+
   return (
     <div style={{ display:'flex', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
 
-      {/* === VÄNSTER: Hjulet === */}
+      {/* === VÄNSTER: Hjul === */}
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
 
-        {/* Header-rad */}
-        <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'baseline', justifyContent:'space-between', flexShrink:0 }}>
-          <div>
+        {/* Header */}
+        <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, borderBottom:'1px solid var(--border-subtle)' }}>
+          <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
             <span style={{ fontSize:22, fontWeight:700, color:'var(--text-primary)', letterSpacing:'-0.02em' }}>{names.length}</span>
-            <span style={{ fontSize:13, color:'var(--text-tertiary)', marginLeft:4 }}>namn</span>
-            {drawnNames.length > 0 && (
-              <span style={{ fontSize:12, color:'var(--text-tertiary)', marginLeft:8 }}>· {drawnNames.length} dragna</span>
-            )}
+            <span style={{ fontSize:13, color:'var(--text-tertiary)' }}>namn</span>
+            {drawnNames.length > 0 && <span style={{ fontSize:12, color:'var(--text-tertiary)' }}>· {drawnNames.length} dragna</span>}
           </div>
           <div style={{ display:'flex', gap:6 }}>
             {drawnNames.length > 0 && (
@@ -442,56 +441,59 @@ export function TurnWindow() {
               </button>
             )}
             <button type="button" onClick={handleClearDrawn}
-              style={{ padding:'4px 12px', borderRadius:20, border:'1px solid rgba(180,60,50,0.25)', background:'transparent', fontSize:12, color:'#B43C32', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              style={{ padding:'4px 12px', borderRadius:20, border:'1px solid rgba(180,60,50,0.3)', background:'transparent', fontSize:12, color:'#B43C32', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
               Töm
             </button>
           </div>
         </div>
 
-        {/* Hjul-area — ALLTID kvadratisk */}
-        <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'12px 16px', overflow:'visible', minHeight:0 }}>
+        {/* Hjul — centrerat med fast storlek */}
+        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', padding:'8px 0' }}>
           {names.length === 0 ? (
-            <div style={{ textAlign:'center', padding:32 }}>
-              <div style={{ fontSize:56, opacity:0.08 }}>◎</div>
-              <div style={{ fontSize:15, fontWeight:500, color:'var(--text-secondary)', marginTop:12 }}>Lägg till namn</div>
+            <div style={{ textAlign:'center', padding:24 }}>
+              <div style={{ fontSize:48, opacity:0.1 }}>◎</div>
+              <div style={{ fontSize:14, fontWeight:500, color:'var(--text-secondary)', marginTop:10 }}>Lägg till namn</div>
               <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:4 }}>och tryck Snurra</div>
             </div>
           ) : (
-            <>
-              {/* Canvas med exakt kvadratisk container — detta fixar oval-problemet */}
-              <div style={{ width:wheelDiameter, height:wheelDiameter, flexShrink:0, position:'relative', cursor:isSpinning?'default':'pointer' }}
-                onClick={isSpinning ? undefined : handleSpin}>
-                <canvas ref={canvasRef} width={canvasSize} height={canvasSize}
-                  style={{ position:'absolute', top:0, left:0, width:'100%', height:'100%', borderRadius:'50%' }} />
-              </div>
-
-              {/* Vald */}
-              <div style={{ marginTop:14, textAlign:'center', minHeight:52 }}>
-                {lastDrawn ? (
-                  <>
-                    <div style={{ fontSize:10, fontWeight:600, color:'var(--text-tertiary)', textTransform:'uppercase', letterSpacing:'0.1em' }}>Vald</div>
-                    <div style={{ fontSize:26, fontWeight:700, color:'var(--accent)', letterSpacing:'-0.02em', marginTop:2 }}>{lastDrawn}</div>
-                  </>
-                ) : (
-                  <div style={{ fontSize:12, color:'var(--text-tertiary)' }}>Tryck på hjulet eller knappen</div>
-                )}
-              </div>
-
-              {/* Snurra-knapp */}
-              <button type="button" onClick={handleSpin} disabled={isSpinning}
-                style={{ marginTop:8, padding:'10px 36px', borderRadius:24, border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:15, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms', letterSpacing:'-0.01em' }}>
-                {isSpinning ? 'Snurrar…' : 'Snurra'}
-              </button>
-            </>
+            <div style={{ width:220, height:220, flexShrink:0, position:'relative', cursor:isSpinning?'default':'pointer' }}
+              onClick={isSpinning?undefined:handleSpin}>
+              <canvas ref={canvasRef} width={canvasSize} height={canvasSize}
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', borderRadius:'50%' }} />
+            </div>
           )}
         </div>
+
+        {/* Vald */}
+        {names.length > 0 && (
+          <div style={{ textAlign:'center', padding:'4px 16px', flexShrink:0, minHeight:48 }}>
+            {lastDrawn ? (
+              <>
+                <div style={{ fontSize:10, fontWeight:600, color:'var(--text-tertiary)', textTransform:'uppercase', letterSpacing:'0.1em' }}>Vald</div>
+                <div style={{ fontSize:24, fontWeight:700, color:'var(--accent)', letterSpacing:'-0.02em' }}>{lastDrawn}</div>
+              </>
+            ) : (
+              <div style={{ fontSize:12, color:'var(--text-tertiary)', paddingTop:14 }}>Tryck Snurra för att dra ett namn</div>
+            )}
+          </div>
+        )}
+
+        {/* Snurra-knapp — alltid synlig */}
+        {names.length > 0 && (
+          <div style={{ padding:'8px 16px', flexShrink:0, display:'flex', justifyContent:'center' }}>
+            <button type="button" onClick={handleSpin} disabled={isSpinning}
+              style={{ padding:'10px 40px', borderRadius:24, border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:15, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms', letterSpacing:'-0.01em' }}>
+              {isSpinning ? 'Snurrar…' : 'Snurra'}
+            </button>
+          </div>
+        )}
 
         {/* Toggle + status */}
         <div style={{ padding:'8px 16px 12px', borderTop:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
             onClick={() => setExcludeDrawn(v => !v)}>
             <div style={{ width:36, height:20, borderRadius:10, background:excludeDrawn?'var(--accent)':'var(--border-medium)', position:'relative', transition:'background 220ms', flexShrink:0 }}>
-              <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:2, left:excludeDrawn?18:2, transition:'left 220ms ease', boxShadow:'0 1px 4px rgba(0,0,0,0.18)' }} />
+              <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:2, left:excludeDrawn?18:2, transition:'left 220ms', boxShadow:'0 1px 4px rgba(0,0,0,0.18)' }} />
             </div>
             <span style={{ fontSize:12, color:'var(--text-secondary)', userSelect:'none' }}>Exkludera dragna</span>
           </div>
@@ -500,7 +502,7 @@ export function TurnWindow() {
       </div>
 
       {/* === HÖGER: Panel === */}
-      <div style={{ width:200, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflow:'hidden', flexShrink:0 }}>
+      <div style={{ width:204, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflow:'hidden', flexShrink:0 }}>
 
         {/* Lägg till */}
         <div style={{ padding:'14px 14px 12px', borderBottom:'1px solid var(--border-subtle)' }}>
@@ -557,9 +559,9 @@ export function TurnWindow() {
             {names.map((name, i) => {
               const drawn = drawnNames.includes(name);
               return (
-                <div key={i} style={{ fontSize:12, padding:'4px 0', borderBottom:'1px solid var(--border-subtle)', color:drawn?'var(--text-tertiary)':'var(--text-primary)', textDecoration:drawn?'line-through':'none', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                <div key={i} style={{ fontSize:12, padding:'4px 0', borderBottom:'1px solid var(--border-subtle)', color:drawn?'var(--text-tertiary)':'var(--text-primary)', textDecoration:drawn?'line-through':'none', display:'flex', justifyContent:'space-between' }}>
                   <span>{name}</span>
-                  {drawn && <span style={{ fontSize:10, color:'var(--text-tertiary)' }}>✓</span>}
+                  {drawn && <span style={{ fontSize:10 }}>✓</span>}
                 </div>
               );
             })}
