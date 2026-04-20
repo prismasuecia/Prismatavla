@@ -456,11 +456,9 @@ export function TurnWindow() {
               <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:4 }}>och tryck Snurra</div>
             </div>
           ) : (
-            <div style={{ width:220, height:220, flexShrink:0, position:'relative', cursor:isSpinning?'default':'pointer' }}
-              onClick={isSpinning?undefined:handleSpin}>
-              <canvas ref={canvasRef} width={canvasSize} height={canvasSize}
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%', borderRadius:'50%' }} />
-            </div>
+            <canvas ref={canvasRef} width={canvasSize} height={canvasSize}
+              onClick={isSpinning?undefined:handleSpin}
+              style={{ width:220, height:220, borderRadius:'50%', flexShrink:0, cursor:isSpinning?'default':'pointer', display:'block' }} />
           )}
         </div>
 
