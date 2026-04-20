@@ -487,7 +487,7 @@ export function TurnWindow() {
                 style={{ flex: 1, padding: '6px 0', borderRadius: 'var(--radius-full)', border: 'none', background: 'var(--accent)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
                 Lägg till
               </button>
-              <button type="button" onClick={handleFetchActiveClassList}
+              <button type="button" onClick={handleUseActiveClass}
                 style={{ flex: 1, padding: '6px 0', borderRadius: 'var(--radius-full)', border: '1.5px solid var(--border-medium)', background: 'transparent', color: 'var(--text-secondary)', fontSize: 11, fontWeight: 500, cursor: 'pointer', fontFamily: 'var(--font-sans)' }}>
                 Hämta klass
               </button>
