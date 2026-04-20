@@ -417,7 +417,7 @@ export function TurnWindow() {
 
 
   // Beräkna storlek för PERFEKT cirkel
-  const wheelDiameter = Math.min(canvasSize, 280)
+  const wheelDiameter = Math.min(canvasSize, 220)
 
   return (
     <div style={{ display:'flex', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
