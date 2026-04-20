@@ -429,8 +429,8 @@ export function TurnWindow() {
           </div>
         </div>
         <div style={{ display:'flex', gap:6, flexShrink:0 }}>
-          <Pill onClick={handleResetWheel} label="\u00c5terst\u00e4ll" />
-          <Pill onClick={handleClearDrawn} label="T\u00f6m" danger />
+          <Pill onClick={handleResetWheel} label="Återställ" />
+          <Pill onClick={handleClearDrawn} label="Töm" danger />
         </div>
       </div>
 
