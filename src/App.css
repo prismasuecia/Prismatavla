@@ -1141,6 +1141,7 @@ button.spin-btn {
 /* === SITTPLATS seat-card fix === */
 .seating-stage {
   display: flex !important;
+  flex-direction: row !important;
   flex-wrap: wrap !important;
   gap: 8px !important;
   padding: 12px !important;
