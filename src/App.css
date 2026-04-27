@@ -678,3 +678,240 @@ button.spin-btn {
   flex-wrap: wrap !important;
   padding: 4px 0 8px !important;
 }
+
+
+/* ============================================
+   SITTPLATS — Apple-redesign via CSS
+   ============================================ */
+
+/* Tar bort all default-styling */
+.seating-module {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+/* Kontroll-rader */
+.seating-module .control-row,
+.seating-module section.control-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  background: transparent;
+}
+
+/* Labels — ta bort gamla label-stylingen */
+.seating-module label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+/* Alla selects */
+.seating-module select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-medium);
+  background: var(--surface-secondary);
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+/* Alla inputs */
+.seating-module input[type="text"],
+.seating-module input[type="number"] {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-medium);
+  background: var(--surface-secondary);
+  font-size: 12px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  outline: none;
+}
+
+/* Alla knappar — pill-stil */
+.seating-module button {
+  padding: 6px 14px !important;
+  border-radius: 20px !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: transparent !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--text-secondary) !important;
+  cursor: pointer !important;
+  font-family: var(--font-sans) !important;
+  white-space: nowrap !important;
+  transition: all 120ms ease !important;
+}
+
+.seating-module button:hover {
+  background: var(--surface-hover) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Primär-knapp: Generera layout, Auto-placera */
+.seating-module button.primary,
+.seating-module .layout-actions button:first-child {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+}
+
+/* Plats-grid */
+.seating-module .seats-grid,
+.seating-module .seat-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px;
+}
+
+/* Individuella platser */
+.seating-module .seat,
+.seating-module [class*="seat-"] {
+  width: 80px;
+  min-height: 56px;
+  border-radius: 10px !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: var(--surface-secondary) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  padding: 6px 4px !important;
+  transition: all 150ms ease !important;
+  font-family: var(--font-sans) !important;
+}
+
+.seating-module .seat:hover,
+.seating-module [class*="seat-"]:hover {
+  border-color: var(--accent) !important;
+  background: rgba(45,92,69,0.06) !important;
+}
+
+.seating-module .seat.selected,
+.seating-module [class*="seat-"].selected,
+.seating-module .seat[data-selected="true"] {
+  border: 2px solid var(--accent) !important;
+  background: rgba(45,92,69,0.1) !important;
+}
+
+.seating-module .seat.locked,
+.seating-module [class*="seat-"].locked {
+  border-color: var(--text-tertiary) !important;
+  opacity: 0.6 !important;
+}
+
+/* Plats-labels */
+.seating-module .seat-label,
+.seating-module .seat span:first-child {
+  font-size: 9px !important;
+  color: var(--text-tertiary) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* Plats-namn */
+.seating-module .seat-name,
+.seating-module .seat span:last-child {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  text-align: center !important;
+  line-height: 1.2 !important;
+  word-break: break-word !important;
+}
+
+/* Tom plats */
+.seating-module .seat.empty span:last-child,
+.seating-module .seat.empty .seat-name {
+  color: var(--border-medium) !important;
+  font-weight: 400 !important;
+}
+
+/* Grupp-rubriker */
+.seating-module .group-header,
+.seating-module h3,
+.seating-module .seat-section-title {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.08em !important;
+  color: var(--text-tertiary) !important;
+  padding: 12px 16px 6px !important;
+  margin: 0 !important;
+}
+
+/* Student-lista */
+.seating-module .student-list,
+.seating-module .unassigned-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  overflow: auto;
+}
+
+.seating-module .student-list button,
+.seating-module .unassigned-list button {
+  text-align: left !important;
+  width: 100% !important;
+  border-radius: 8px !important;
+  padding: 6px 10px !important;
+}
+
+/* Placering-info */
+.seating-module .placement-info,
+.seating-module .stats {
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: 6px 16px;
+}
+
+/* Lärarbord */
+.seating-module .teacher-desk,
+.seating-module [class*="teacher"] {
+  background: var(--surface-secondary);
+  border-radius: 12px;
+  padding: 8px;
+  margin: 8px 16px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-align: center;
+  border: 1px dashed var(--border-medium);
+}
+
+/* Scroll-area för platser */
+.seating-module .seating-area,
+.seating-module .seats-area {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Statusmeddelanden */
+.seating-module .status,
+.seating-module .status-message {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 500;
+  padding: 6px 16px;
+  flex-shrink: 0;
+}
