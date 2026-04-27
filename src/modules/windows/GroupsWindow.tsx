@@ -509,7 +509,7 @@ export function GroupsWindow() {
     </div>
   )
 
-  const steps: {id: string, label: string}[] = [{id:'names',label:'Namn'},{id:'setup',label:'Strategi'},{id:'results',label:'Resultat'}]
+  const steps = [{id:'names' as const,label:'Namn'},{id:'setup' as const,label:'Strategi'},{id:'results' as const,label:'Resultat'}]
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
