@@ -542,7 +542,7 @@ export function GroupsWindow() {
           const done = activeStep > i;
           const active = activeStep === i;
           return (
-            <React.Fragment key={step}>
+            <<> key={step}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <div style={{
                   width:24, height:24, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
@@ -560,7 +560,7 @@ export function GroupsWindow() {
               {i < steps.length-1 && (
                 <div style={{ flex:1, height:1, background: done ? 'var(--accent)' : 'var(--border-subtle)', margin:'0 10px' }} />
               )}
-            </React.Fragment>
+            </<>>
           );
         })}
       </div>
