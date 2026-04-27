@@ -256,178 +256,190 @@ export function SeatingModule() {
     )
   }
 
-
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
-
-      {/* === TOPBAR: Plan-val + kontroller === */}
-      <div style={{ padding:'10px 16px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', gap:10, flexShrink:0, flexWrap:'wrap' }}>
-        {/* Klassval */}
-        <select value={activeClassId??''} onChange={handleClassChange}
-          style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', cursor:'pointer' }}>
-          {classLists.lists.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
-        </select>
-        <button type="button" onClick={handleSyncClassList}
-          style={{ padding:'6px 12px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)', whiteSpace:'nowrap' }}>
-          Hämta klass
+    <div className="seating-module">
+      <section className="control-row">
+        <label>
+          Klasslista
+          <select value={activeClassId ?? ''} onChange={handleClassChange}>
+            {classLists.lists.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button type="button" onClick={handleSyncClassList}>
+          Hämta aktiv klasslista
         </button>
-
-        <div style={{ width:1, height:20, background:'var(--border-subtle)', margin:'0 2px' }} />
-
-        {/* Planval */}
-        <select value={plan.id} onChange={e=>actions.setActiveSeatingPlan(activeClassId,e.target.value)}
-          style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', cursor:'pointer' }}>
-          {planList.map(item=><option key={item.id} value={item.id}>{item.name}</option>)}
-        </select>
-        <input type="text" value={planNameDraft} onChange={e=>setPlanNameDraft(e.target.value)}
-          placeholder="Nytt plannamn"
-          style={{ padding:'6px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', width:120 }} />
-        <button type="button" onClick={handleSavePlan}
-          style={{ padding:'6px 12px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+        <label>
+          Planer
+          <select
+            value={plan.id}
+            onChange={(event) => actions.setActiveSeatingPlan(activeClassId, event.target.value)}
+          >
+            {planList.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <input
+          type="text"
+          value={planNameDraft}
+          onChange={(event) => setPlanNameDraft(event.target.value)}
+          placeholder="Namn på plan"
+        />
+        <button type="button" onClick={handleSavePlan}>
           Spara
         </button>
-        <button type="button" onClick={handleCreatePlan}
-          style={{ padding:'6px 12px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+        <button type="button" onClick={handleCreatePlan}>
           Ny plan
         </button>
-        <button type="button" onClick={handleDeletePlan}
-          style={{ padding:'6px 12px', borderRadius:20, border:'1.5px solid rgba(180,60,50,0.3)', background:'transparent', fontSize:12, color:'#B43C32', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+        <button type="button" onClick={handleDeletePlan}>
           Ta bort
         </button>
-      </div>
+      </section>
 
-      {/* === LAYOUT-KONTROLLER === */}
-      <div style={{ padding:'8px 16px', borderBottom:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', gap:8, flexShrink:0, flexWrap:'wrap' }}>
-        <select value={layoutDraft} onChange={e=>setLayoutDraft(e.target.value as LayoutType)}
-          style={{ padding:'5px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', cursor:'pointer' }}>
-          {Object.entries(LAYOUT_LABELS).map(([k,v])=><option key={k} value={k}>{v as string}</option>)}
-        </select>
-        <select value={seatCountChoice} onChange={e=>setSeatCountChoice(e.target.value as SeatCountChoice)}
-          style={{ padding:'5px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', cursor:'pointer' }}>
-          <option value="match">Matcha klass</option>
-          {SEAT_COUNT_CHOICES.map(n=><option key={n} value={String(n)}>{n} platser</option>)}
-          <option value="custom">Anpassat</option>
-        </select>
-        {seatCountChoice==='custom' && (
-          <input type="number" value={customSeatCount} onChange={e=>setCustomSeatCount(Number(e.target.value))} min={1} max={60}
-            style={{ width:60, padding:'5px 8px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, fontFamily:'var(--font-sans)', outline:'none' }} />
+      <section className="control-row layout">
+        <label>
+          Layouttyp
+          <select value={layoutDraft} onChange={(event) => setLayoutDraft(event.target.value as LayoutType)}>
+            {layoutOptions.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Platser
+          <select value={seatCountChoice} onChange={(event) => setSeatCountChoice(event.target.value as SeatCountChoice)}>
+            <option value="match">Matcha klasslista</option>
+            {SEAT_COUNT_CHOICES.map((value) => (
+              <option key={value} value={`${value}`}>
+                {value} platser
+              </option>
+            ))}
+            <option value="custom">Anpassat</option>
+          </select>
+        </label>
+        {seatCountChoice === 'custom' && (
+          <label>
+            Antal
+            <input
+              type="number"
+              min={4}
+              max={64}
+              value={customSeatCount}
+              onChange={(event) => setCustomSeatCount(Number(event.target.value) || 4)}
+            />
+          </label>
         )}
-        <button type="button" onClick={handleGenerateLayout}
-          style={{ padding:'6px 14px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:12, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+        <button type="button" onClick={handleGenerateLayout}>
           Generera layout
         </button>
+      </section>
 
-        <div style={{ flex:1 }} />
-
-        {/* Åtgärder */}
-        {[
-          {label:'Auto-placera', fn:handleAutoAssign},
-          {label:'Blanda om', fn:handleShuffle},
-          {label:'Töm', fn:handleClear},
-        ].map(({label,fn})=>(
-          <button key={label} type="button" onClick={fn}
-            style={{ padding:'5px 12px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-            {label}
-          </button>
-        ))}
-        <button type="button" onClick={handleGlobalLockToggle}
-          style={{ padding:'5px 12px', borderRadius:20, border:'1.5px solid '+(lockMode?'var(--accent)':'var(--border-medium)'), background:lockMode?'rgba(45,92,69,0.08)':'transparent', fontSize:12, color:lockMode?'var(--accent)':'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)', fontWeight:lockMode?600:400 }}>
-          {lockMode ? '🔒 Låsläge' : 'Lås platser'}
+      <section className="control-row actions">
+        <button type="button" onClick={handleAutoAssign}>
+          <Users size={16} aria-hidden="true" /> Auto-placera
         </button>
-        <button type="button" onClick={handleExportCSV} style={{ padding:'5px 10px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>CSV</button>
-        <button type="button" onClick={handleExportPDF} style={{ padding:'5px 10px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>PDF</button>
-      </div>
+        <button type="button" onClick={handleShuffle}>
+          <ShuffleIcon size={16} aria-hidden="true" /> Blanda om
+        </button>
+        <button type="button" onClick={handleClear}>
+          <RefreshCcw size={16} aria-hidden="true" /> Töm
+        </button>
+        <button type="button" className={clsx({ active: lockMode })} onClick={handleGlobalLockToggle}>
+          {lockMode ? <Unlock size={16} aria-hidden="true" /> : <Lock size={16} aria-hidden="true" />} Lås platsläge
+        </button>
+        <button type="button" onClick={handleExportPDF}>
+          <FileDown size={16} aria-hidden="true" /> PDF
+        </button>
+        <button type="button" onClick={handleExportCSV}>
+          <FileSpreadsheet size={16} aria-hidden="true" /> CSV
+        </button>
+      </section>
 
-      {/* === HUVUD: Platserna + sidopanel === */}
-      <div style={{ flex:1, display:'flex', overflow:'hidden' }}>
-
-        {/* Platskarta */}
-        <div style={{ flex:1, overflow:'auto', padding:16 }}>
-          {seatDescriptors.length === 0 ? (
-            <div style={{ textAlign:'center', paddingTop:60, color:'var(--text-tertiary)' }}>
-              <div style={{ fontSize:40, opacity:0.15, marginBottom:12 }}>◻</div>
-              <div style={{ fontSize:14, fontWeight:500 }}>Generera en layout för att börja</div>
-            </div>
-          ) : (
-            <div>
-              {Array.from(new Set(seatDescriptors.map(s=>s.group))).map(group=>(
-                <div key={group} style={{ marginBottom:16 }}>
-                  {group && <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>{group}</div>}
-                  <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
-                    {seatDescriptors.filter(s=>s.group===group).map(seat=>{
-                      const isSelected = selectedSeatId === seat.id
-                      const isLocked = plan.lockedSeatIds?.includes(seat.id)
-                      const student = seat.studentName
-                      return (
-                        <button key={seat.id} type="button" onClick={()=>handleSeatClick(seat.id)}
-                          style={{
-                            width:80, minHeight:52, borderRadius:10, padding:'6px 8px',
-                            border: isSelected ? '2px solid var(--accent)' : isLocked ? '1.5px solid var(--text-tertiary)' : '1.5px solid var(--border-medium)',
-                            background: isSelected ? 'rgba(45,92,69,0.1)' : student ? 'var(--surface-secondary)' : 'transparent',
-                            cursor:'pointer', fontFamily:'var(--font-sans)',
-                            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
-                          }}>
-                          <div style={{ fontSize:9, color:'var(--text-tertiary)', fontWeight:600 }}>{seat.label}</div>
-                          <div style={{ fontSize:11, fontWeight:student?600:400, color:student?'var(--text-primary)':'var(--border-medium)', wordBreak:'break-word', textAlign:'center', lineHeight:1.2 }}>
-                            {student || '–'}
-                          </div>
-                          {isLocked && <div style={{ fontSize:9, color:'var(--text-tertiary)' }}>🔒</div>}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Sidopanel: Lediga elever */}
-        <div style={{ width:160, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflow:'hidden', flexShrink:0 }}>
-          <div style={{ padding:'10px 12px', borderBottom:'1px solid var(--border-subtle)', flexShrink:0 }}>
-            <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:4 }}>Lediga elever</div>
-            <div style={{ fontSize:12, color:'var(--text-tertiary)' }}>{unassignedStudents.length} av {allStudents.length}</div>
-          </div>
-          <div style={{ flex:1, overflow:'auto', padding:'8px 12px' }}>
-            {unassignedStudents.length === 0 ? (
-              <div style={{ fontSize:12, color:'var(--text-tertiary)', textAlign:'center', paddingTop:16 }}>Alla placerade ✓</div>
-            ) : (
-              unassignedStudents.map(name=>(
-                <button key={name} type="button"
-                  onClick={()=>selectedSeatId ? handleAssignStudent(name) : undefined}
-                  style={{ display:'block', width:'100%', padding:'6px 8px', borderRadius:8, border:'1.5px solid '+(selectedSeatId?'var(--accent)':'var(--border-medium)'), background:selectedSeatId?'rgba(45,92,69,0.06)':'transparent', fontSize:12, color:'var(--text-primary)', cursor:selectedSeatId?'pointer':'default', fontFamily:'var(--font-sans)', textAlign:'left', marginBottom:4, transition:'all 120ms' }}>
-                  {name}
-                </button>
-              ))
-            )}
-          </div>
-          {selectedSeatId && (
-            <div style={{ padding:'8px 12px', borderTop:'1px solid var(--border-subtle)', flexShrink:0 }}>
-              <button type="button" onClick={()=>handleUnassignSeat(selectedSeatId)}
-                style={{ width:'100%', padding:'6px 0', borderRadius:20, border:'1.5px solid rgba(180,60,50,0.3)', background:'transparent', fontSize:11, color:'#B43C32', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-                Avplacera
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* === BOTTEN: Exportera === */}
-      <div style={{ padding:'8px 16px', borderTop:'1px solid var(--border-subtle)', display:'flex', gap:8, flexShrink:0 }}>
-        <button type="button" onClick={handleCreateGroups}
-          style={{ padding:'6px 14px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+      <section className="control-row bridge">
+        <button type="button" onClick={handleCreateGroups} disabled={plan.layoutType !== 'grupper4' || assignedCount === 0}>
           Skapa grupper från borden
         </button>
-        <button type="button" onClick={handleCreateTurnOrder}
-          style={{ padding:'6px 14px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
-          Turordning från sittordning
+        <button type="button" onClick={handleCreateTurnOrder} disabled={assignedCount === 0}>
+          Skapa turordning från sittordning
         </button>
+      </section>
+
+      <div className="seating-canvas-wrapper">
+        <div className="seating-stage" ref={canvasRef}>
+          <div className="teacher-desk">Lärarbord</div>
+          {seatAssignments.map((seat) => (
+            <button
+              key={seat.id}
+              type="button"
+              className={clsx('seat-card', {
+                'is-empty': !seat.student,
+                'is-selected': selectedSeatId === seat.id,
+              })}
+              style={{ left: `${seat.x}%`, top: `${seat.y}%` }}
+              data-locked={seat.locked ? 'true' : 'false'}
+              onClick={() => handleSeatClick(seat.id)}
+            >
+              <span className="seat-label">{seat.label}</span>
+              <strong className="seat-student">{seat.student ?? 'Tom plats'}</strong>
+              <span className="seat-lock" onClick={(event) => handleLockClick(event, () => handleToggleSeatLock(seat.id))}>
+                {seat.locked ? <Lock size={14} aria-hidden="true" /> : <Unlock size={14} aria-hidden="true" />}
+              </span>
+            </button>
+          ))}
+        </div>
+        <aside className="seating-side-panel">
+          <header>
+            <p className="eyebrow">Placering</p>
+            <h3>
+              {assignedCount} av {Math.max(plan.seatCount, students.length)} elever
+            </h3>
+            {overflowCount > 0 && <span className="hint">{overflowCount} elever saknar plats</span>}
+          </header>
+          <section className="unassigned-list">
+            <h4>Lediga elever</h4>
+            {unassignedStudents.length === 0 && <p>Alla elever har en plats.</p>}
+            {unassignedStudents.length > 0 && (
+              <ul>
+                {unassignedStudents.map((student) => (
+                  <li key={student}>
+                    <button type="button" onClick={() => handleAssignStudent(student)}>
+                      {student}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          {selectedSeat && (
+            <section className="seat-details">
+              <h4>
+                {selectedSeat.label}
+                {selectedSeat.locked && <Lock size={14} aria-hidden="true" />}
+              </h4>
+              <p>{selectedSeat.student ?? 'Tom plats'}</p>
+              <div className="seat-detail-actions">
+                <button type="button" onClick={handleUnassignSeat} disabled={!selectedSeat.student}>
+                  Rensa plats
+                </button>
+                <button type="button" onClick={() => handleToggleSeatLock(selectedSeat.id)}>
+                  {selectedSeat.locked ? 'Lås upp' : 'Lås plats'}
+                </button>
+              </div>
+            </section>
+          )}
+        </aside>
       </div>
     </div>
   )
 }
-
-
 
 function buildSeatDescriptors(plan?: SeatingPlan): SeatDescriptor[] {
   if (!plan) {
