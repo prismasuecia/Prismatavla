@@ -1136,3 +1136,97 @@ button.spin-btn {
   color: var(--accent) !important;
 }
 /* === /SITTPLATS === */
+
+
+/* === SITTPLATS seat-card fix === */
+.seating-stage {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  padding: 12px !important;
+  align-content: flex-start !important;
+}
+
+.seating-module .seat-card {
+  width: 80px !important;
+  height: 60px !important;
+  min-height: unset !important;
+  max-height: 60px !important;
+  border-radius: 10px !important;
+  border: 1.5px solid var(--border-medium) !important;
+  background: var(--surface-primary) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  padding: 4px !important;
+  cursor: pointer !important;
+  font-family: var(--font-sans) !important;
+  transition: all 120ms !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.seating-module .seat-card.is-occupied {
+  border-color: var(--accent) !important;
+  background: rgba(45,92,69,0.07) !important;
+}
+
+.seating-module .seat-card.is-selected {
+  border: 2px solid var(--accent) !important;
+  background: rgba(45,92,69,0.14) !important;
+  transform: scale(1.05) !important;
+}
+
+.seating-module .seat-card.is-locked {
+  opacity: 0.45 !important;
+}
+
+.seating-module .seat-card:hover {
+  border-color: var(--accent) !important;
+}
+
+/* Plats-nummer */
+.seating-module .seat-card .seat-number {
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  color: var(--text-tertiary) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1 !important;
+}
+
+/* Elev-namn i plats */
+.seating-module .seat-card .student-name {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.2 !important;
+  text-align: center !important;
+  word-break: break-word !important;
+  max-width: 100% !important;
+}
+
+/* Tom plats text */
+.seating-module .seat-card .seat-empty-label {
+  font-size: 10px !important;
+  color: var(--border-medium) !important;
+  font-weight: 400 !important;
+}
+
+/* Låsikon */
+.seating-module .seat-card .seat-lock-icon,
+.seating-module .seat-card svg {
+  width: 12px !important;
+  height: 12px !important;
+  opacity: 0.4 !important;
+}
+
+/* Lärarbord */
+.seating-module .teacher-desk {
+  width: 100% !important;
+  height: auto !important;
+  max-height: unset !important;
+}
+/* === /SITTPLATS seat-card fix === */
