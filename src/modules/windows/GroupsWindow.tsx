@@ -509,60 +509,227 @@ export function GroupsWindow() {
     </div>
   )
 
+
+  // Steg-definitioner
+  const steps = ['Namn', 'Strategi', 'Resultat'] as const
+
+  // Pill-komponent
+  const Btn = ({ onClick, children, primary, danger, disabled }: {
+    onClick: () => void; children: React.ReactNode;
+    primary?: boolean; danger?: boolean; disabled?: boolean;
+  }) => (
+    <button type="button" onClick={onClick} disabled={disabled}
+      style={{
+        padding: '7px 16px', borderRadius: 'var(--radius-full)',
+        border: primary ? 'none' : danger ? '1.5px solid rgba(180,60,50,0.3)' : '1.5px solid var(--border-medium)',
+        background: primary ? 'var(--accent)' : 'transparent',
+        color: primary ? '#fff' : danger ? '#B43C32' : 'var(--text-secondary)',
+        fontSize: 13, fontWeight: primary ? 600 : 500,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.4 : 1,
+        fontFamily: 'var(--font-sans)', transition: 'all 120ms',
+      }}>
+      {children}
+    </button>
+  )
+
   return (
-    <div className="groups-window">
-      <div className="groups-toolbar projector-hide">
-        <div className="toolbar-group">
-          <button
-            type="button"
-            className="toolbar-btn primary"
-            onClick={handleGenerate}
-            disabled={!configurationReady}
-          >
-            Skapa grupper
-          </button>
-          <button type="button" className="toolbar-btn" onClick={handleReshuffle} disabled={!groups.length}>
-            Slumpa igen
-          </button>
-        </div>
-        <div className="toolbar-group">
-          <button type="button" className="toolbar-btn" onClick={handleCopy} disabled={!groups.length}>
-            Kopiera
-          </button>
-          <button type="button" className="toolbar-btn outline" onClick={handleExportCSV} disabled={!groups.length}>
-            CSV
-          </button>
-          <button type="button" className="toolbar-btn outline" onClick={handleExportPDF} disabled={!groups.length}>
-            PDF
-          </button>
-        </div>
+    <div style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
+
+      {/* Steg-indikator */}
+      <div style={{ display:'flex', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border-subtle)', flexShrink:0, gap:0 }}>
+        {steps.map((step, i) => {
+          const done = activeStep > i;
+          const active = activeStep === i;
+          return (
+            <React.Fragment key={step}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{
+                  width:24, height:24, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
+                  background: done ? 'var(--accent)' : active ? 'var(--accent)' : 'var(--surface-secondary)',
+                  border: done||active ? 'none' : '1.5px solid var(--border-medium)',
+                  fontSize:11, fontWeight:700, color: done||active ? '#fff' : 'var(--text-tertiary)',
+                  flexShrink:0,
+                }}>
+                  {done ? '✓' : i+1}
+                </div>
+                <span style={{ fontSize:13, fontWeight: active ? 600 : 400, color: active ? 'var(--text-primary)' : done ? 'var(--accent)' : 'var(--text-tertiary)' }}>
+                  {step}
+                </span>
+              </div>
+              {i < steps.length-1 && (
+                <div style={{ flex:1, height:1, background: done ? 'var(--accent)' : 'var(--border-subtle)', margin:'0 10px' }} />
+              )}
+            </React.Fragment>
+          );
+        })}
       </div>
 
-      <div className="groups-stepper projector-hide" role="tablist" aria-label="Steg för Arbetsgrupper">
-        {stepMeta.map((step, index) => (
-          <button
-            key={step.id}
-            type="button"
-            className={activeStep === step.id ? 'step-button active' : 'step-button'}
-            onClick={() => setActiveStep(step.id)}
-            aria-current={activeStep === step.id ? 'step' : undefined}
-          >
-            <span className="step-index">{index + 1}</span>
-            <span className="step-copy">
-              <strong>{step.label}</strong>
-              <small>{step.helper}</small>
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Innehåll */}
+      <div style={{ flex:1, overflow:'auto', padding:'20px' }}>
 
-      <div className="groups-stage">
-        {activeStep === 'names' && renderNamesStep()}
-        {activeStep === 'setup' && renderSetupStep()}
-        {activeStep === 'results' && renderResultsStep()}
-      </div>
+        {/* STEG 1: Namn */}
+        {activeStep === 0 && (
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>Deltagare</div>
+              <textarea
+                value={namesInput}
+                onChange={e => setNamesInput(e.target.value)}
+                placeholder="Klistra in namn, ett per rad…"
+                rows={8}
+                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:13, color:'var(--text-primary)', fontFamily:'var(--font-sans)', resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:1.7, display:'block' }}
+              />
+              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:8 }}>
+                <span style={{ fontSize:12, color:'var(--text-tertiary)' }}>
+                  {names.length > 0 ? names.length+' deltagare' : 'Inga namn ännu'}
+                </span>
+                <Btn onClick={handleImportClass}>Hämta aktiv klass</Btn>
+              </div>
+            </div>
 
-      {statusMessage && <p className="status-message global-status">{statusMessage}</p>}
+            {/* Sparade listor */}
+            <div style={{ borderTop:'1px solid var(--border-subtle)', paddingTop:16 }}>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:10 }}>Sparade listor</div>
+              <div style={{ display:'flex', gap:8, marginBottom:8 }}>
+                <input type="text" value={saveName} onChange={e => setSaveName(e.target.value)}
+                  placeholder="Namnge listan"
+                  style={{ flex:1, padding:'7px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:'var(--text-primary)', fontFamily:'var(--font-sans)', outline:'none', boxSizing:'border-box' }} />
+                <Btn onClick={handleSave} primary>Spara</Btn>
+              </div>
+              <div style={{ display:'flex', gap:8 }}>
+                <select value={selectedSave} onChange={e => setSelectedSave(e.target.value)}
+                  style={{ flex:1, padding:'7px 10px', borderRadius:8, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:12, color:selectedSave?'var(--text-primary)':'var(--text-tertiary)', fontFamily:'var(--font-sans)', outline:'none', appearance:'none', cursor:'pointer', boxSizing:'border-box' }}>
+                  <option value="">Välj sparad lista…</option>
+                  {Object.keys(saves).map(k => <option key={k} value={k}>{k}</option>)}
+                </select>
+                <Btn onClick={handleLoad}>Ladda</Btn>
+                <Btn onClick={handleDelete} danger>Ta bort</Btn>
+              </div>
+            </div>
+
+            <div style={{ display:'flex', justifyContent:'flex-end', paddingTop:8 }}>
+              <Btn onClick={() => setActiveStep(1)} primary disabled={names.length < 2}>
+                Nästa: Strategi →
+              </Btn>
+            </div>
+          </div>
+        )}
+
+        {/* STEG 2: Strategi */}
+        {activeStep === 1 && (
+          <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+            <div>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:12 }}>Hur vill du dela upp?</div>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {(['count','size'] as const).map(mode => (
+                  <button key={mode} type="button" onClick={() => handleModeSelect(mode)}
+                    style={{
+                      padding:'14px 16px', borderRadius:12,
+                      border: activeMode===mode ? '2px solid var(--accent)' : '1.5px solid var(--border-medium)',
+                      background: activeMode===mode ? 'var(--accent-muted, #eaf2ec)' : 'var(--surface-secondary)',
+                      cursor:'pointer', fontFamily:'var(--font-sans)', textAlign:'left',
+                      display:'flex', justifyContent:'space-between', alignItems:'center',
+                    }}>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:600, color: activeMode===mode ? 'var(--accent)' : 'var(--text-primary)' }}>
+                        {mode==='count' ? 'Antal grupper' : 'Storlek per grupp'}
+                      </div>
+                      <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:2 }}>
+                        {mode==='count' ? 'Dela ' + names.length + ' elever i X grupper' : 'Varje grupp har X elever'}
+                      </div>
+                    </div>
+                    {activeMode===mode && <span style={{ color:'var(--accent)', fontSize:18 }}>✓</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:10 }}>
+                {activeMode==='count' ? 'Antal grupper' : 'Elever per grupp'}
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <input type="range"
+                  min={2} max={activeMode==='count' ? Math.floor(names.length/2) : Math.floor(names.length/2)}
+                  value={activeMode==='count' ? groupCount : groupSize}
+                  onChange={e => activeMode==='count' ? setGroupCount(Number(e.target.value)) : setGroupSize(Number(e.target.value))}
+                  style={{ flex:1, accentColor:'var(--accent)' }} />
+                <div style={{ fontSize:28, fontWeight:700, color:'var(--accent)', minWidth:36, textAlign:'center', letterSpacing:'-0.02em' }}>
+                  {activeMode==='count' ? groupCount : groupSize}
+                </div>
+              </div>
+              <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:6, textAlign:'center' }}>
+                {activeMode==='count'
+                  ? 'Ca ' + Math.ceil(names.length/groupCount) + ' elever per grupp'
+                  : 'Ca ' + Math.ceil(names.length/groupSize) + ' grupper totalt'}
+              </div>
+            </div>
+
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
+                onClick={() => setLeaders(v => !v)}>
+                <div style={{ width:34, height:20, borderRadius:10, background:leaders?'var(--accent)':'var(--border-medium)', position:'relative', transition:'background 200ms' }}>
+                  <div style={{ position:'absolute', width:14, height:14, borderRadius:'50%', background:'#fff', top:3, left:leaders?17:3, transition:'left 200ms', boxShadow:'0 1px 3px rgba(0,0,0,0.2)' }} />
+                </div>
+                <span style={{ fontSize:13, color:'var(--text-secondary)', userSelect:'none' }}>Utse gruppledare</span>
+              </div>
+            </div>
+
+            <div style={{ display:'flex', gap:10, justifyContent:'space-between' }}>
+              <Btn onClick={() => setActiveStep(0)}>← Tillbaka</Btn>
+              <Btn onClick={handleGenerate} primary>Skapa grupper</Btn>
+            </div>
+          </div>
+        )}
+
+        {/* STEG 3: Resultat */}
+        {activeStep === 2 && (
+          <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontSize:14, fontWeight:600, color:'var(--text-primary)' }}>
+                {groups.length} grupper · {names.length} elever
+              </div>
+              <div style={{ display:'flex', gap:6 }}>
+                <Btn onClick={handleReshuffle}>Slumpa igen</Btn>
+                <Btn onClick={handleCopy}>{copyFeedback || 'Kopiera'}</Btn>
+                <Btn onClick={handleExportCSV}>CSV</Btn>
+                <Btn onClick={handleExportPDF}>PDF</Btn>
+              </div>
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(160px, 1fr))', gap:10 }}>
+              {groups.map((group, gi) => (
+                <div key={gi} style={{ borderRadius:12, border:'1.5px solid var(--border-subtle)', background:'var(--surface-secondary)', overflow:'hidden' }}>
+                  <div style={{ padding:'8px 12px', background:'var(--accent)', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <span style={{ fontSize:12, fontWeight:700, color:'#fff', textTransform:'uppercase', letterSpacing:'0.06em' }}>
+                      Grupp {gi+1}
+                    </span>
+                    <span style={{ fontSize:11, color:'rgba(255,255,255,0.75)' }}>{group.members?.length || 0} st</span>
+                  </div>
+                  <div style={{ padding:'8px 12px', display:'flex', flexDirection:'column', gap:4 }}>
+                    {group.members?.map((m: string, mi: number) => (
+                      <div key={mi} style={{ fontSize:13, color: mi===0&&group.leader ? 'var(--accent)' : 'var(--text-primary)', fontWeight: mi===0&&group.leader ? 600 : 400, display:'flex', alignItems:'center', gap:6 }}>
+                        {mi===0&&group.leader && <span style={{ fontSize:10 }}>★</span>}
+                        {m}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {statusMessage && (
+              <div style={{ fontSize:12, color:'var(--accent)', fontWeight:500, textAlign:'center' }}>{statusMessage}</div>
+            )}
+
+            <div style={{ display:'flex', gap:10, justifyContent:'space-between' }}>
+              <Btn onClick={() => setActiveStep(1)}>← Strategi</Btn>
+              <Btn onClick={() => setActiveStep(0)}>Börja om</Btn>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
