@@ -509,7 +509,7 @@ export function GroupsWindow() {
     </div>
   )
 
-  const steps = ['Namn', 'Strategi', 'Resultat']
+  const steps: {id: string, label: string}[] = [{id:'names',label:'Namn'},{id:'setup',label:'Strategi'},{id:'results',label:'Resultat'}]
 
   return (
     <div style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
@@ -517,10 +517,11 @@ export function GroupsWindow() {
       {/* Steg-indikator */}
       <div style={{ display:'flex', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border-subtle)', flexShrink:0 }}>
         {steps.map((step, i) => {
-          const done = activeStep > i;
-          const active = activeStep === i;
+          const stepOrder = ['names','setup','results'];
+          const done = stepOrder.indexOf(activeStep) > i;
+          const active = activeStep === steps[i].id;
           return (
-            <div key={step} style={{ display:'flex', alignItems:'center', flex: i < steps.length-1 ? 1 : 'none' }}>
+            <div key={step.id} style={{ display:'flex', alignItems:'center', flex: i < steps.length-1 ? 1 : 'none' }}>
               <div style={{ display:'flex', alignItems:'center', gap:8 }}>
                 <div style={{
                   width:24, height:24, borderRadius:'50%', display:'flex', alignItems:'center', justifyContent:'center',
@@ -544,7 +545,7 @@ export function GroupsWindow() {
       <div style={{ flex:1, overflow:'auto', padding:'20px 24px' }}>
 
         {/* STEG 1: Namn */}
-        {activeStep === 0 && (
+        {activeStep === 'names' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16, maxWidth:480 }}>
             <div>
               <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>Deltagare</div>
@@ -589,7 +590,7 @@ export function GroupsWindow() {
               </div>
             </div>
             <div style={{ display:'flex', justifyContent:'flex-end', paddingTop:4 }}>
-              <button type="button" onClick={() => setActiveStep(1)} disabled={names.length < 2}
+              <button type="button" onClick={() => setActiveStep('setup')} disabled={names.length < 2}
                 style={{ padding:'9px 20px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600, cursor:names.length<2?'default':'pointer', opacity:names.length<2?0.4:1, fontFamily:'var(--font-sans)' }}>
                 Nästa: Strategi →
               </button>
@@ -598,7 +599,7 @@ export function GroupsWindow() {
         )}
 
         {/* STEG 2: Strategi */}
-        {activeStep === 1 && (
+        {activeStep === 'setup' && (
           <div style={{ display:'flex', flexDirection:'column', gap:20, maxWidth:420 }}>
             <div>
               <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:12 }}>Hur vill du dela upp?</div>
@@ -644,7 +645,7 @@ export function GroupsWindow() {
               <span style={{ fontSize:13, color:'var(--text-secondary)', userSelect:'none' }}>Utse gruppledare</span>
             </div>
             <div style={{ display:'flex', gap:10, justifyContent:'space-between' }}>
-              <button type="button" onClick={() => setActiveStep(0)}
+              <button type="button" onClick={() => setActiveStep('names')}
                 style={{ padding:'8px 16px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:13, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                 ← Tillbaka
               </button>
@@ -657,7 +658,7 @@ export function GroupsWindow() {
         )}
 
         {/* STEG 3: Resultat */}
-        {activeStep === 2 && (
+        {activeStep === 'results' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
               <div style={{ fontSize:15, fontWeight:600, color:'var(--text-primary)' }}>
@@ -692,11 +693,11 @@ export function GroupsWindow() {
             </div>
             {statusMessage && <div style={{ fontSize:12, color:'var(--accent)', fontWeight:500, textAlign:'center' }}>{statusMessage}</div>}
             <div style={{ display:'flex', gap:10, justifyContent:'space-between' }}>
-              <button type="button" onClick={() => setActiveStep(1)}
+              <button type="button" onClick={() => setActiveStep('setup')}
                 style={{ padding:'8px 16px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:13, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                 ← Strategi
               </button>
-              <button type="button" onClick={() => setActiveStep(0)}
+              <button type="button" onClick={() => setActiveStep('names')}
                 style={{ padding:'8px 16px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:13, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                 Börja om
               </button>
