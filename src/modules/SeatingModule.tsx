@@ -398,6 +398,7 @@ export function SeatingModule() {
         <aside className="seating-side-panel">
           <header>
             <p className="eyebrow">Placering</p>
+          <p className="placement-tip">Klicka på en plats → klicka sedan på ett namn nedan för att placera eleven</p>
             <h3>
               {assignedCount} av {Math.max(plan.seatCount, students.length)} elever
             </h3>
