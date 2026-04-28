@@ -1168,3 +1168,33 @@ button.spin-btn {
   flex-shrink: 0 !important;
 }
 /* === /SITTPLATS TVÅKOLUMN-LAYOUT === */
+
+
+/* SITTPLATS — FORCE tvåkolumn */
+div.seating-module div.seating-canvas-wrapper {
+  display: flex !important;
+  flex-direction: row !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+div.seating-module div.seating-canvas-wrapper div.seating-stage {
+  flex: 1 !important;
+  overflow: auto !important;
+  position: relative !important;
+  min-height: 400px !important;
+  height: unset !important;
+}
+
+div.seating-module div.seating-canvas-wrapper aside {
+  width: 190px !important;
+  flex-shrink: 0 !important;
+  border-left: 1px solid var(--border-subtle) !important;
+  overflow-y: auto !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
