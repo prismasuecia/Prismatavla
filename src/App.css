@@ -949,7 +949,7 @@ button.spin-btn {
 }
 
 /* Låt seating-stage behålla originallayout men wrappa */
-.seating-stage { flex-wrap: wrap !important; }
+.seating-stage { display: flex !important; flex-wrap: wrap !important; gap: 8px !important; padding: 8px !important; align-content: flex-start !important; }
 
 /* Hover och states */
 .seating-module .seat-card:hover { border-color: var(--accent) !important; }
