@@ -107,7 +107,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     title: 'Sittplats',
     icon: LayoutGrid,
     component: SeatingWindow,
-    defaultSize: { width: 600, height: 560 },
+    defaultSize: { width: 900, height: 680 },
     supportsFullscreen: true,
   },
   {
