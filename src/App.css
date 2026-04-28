@@ -966,12 +966,12 @@ button.spin-btn {
   position: relative !important;
   display: block !important;
   width: 100% !important;
-  min-height: 420px !important;
+  min-height: 600px !important;
 }
 
 .seating-canvas-wrapper .seating-stage .seat-card {
   position: absolute !important;
-  transform: translate(-50%, -50%) !important;
+  transform: none !important;
   width: 72px !important;
   height: 52px !important;
   min-height: unset !important;
@@ -984,7 +984,7 @@ button.spin-btn {
 
 .seating-canvas-wrapper .seating-stage .teacher-desk {
   position: absolute !important;
-  top: 2% !important;
+  top: 1% !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
   width: 60% !important;
