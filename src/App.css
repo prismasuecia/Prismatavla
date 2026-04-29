@@ -1232,7 +1232,13 @@ div.seating-module div.seating-canvas-wrapper aside {
 /* Drag-prickar: dölj */
 .module-header > div:not(:last-child) {
   opacity: 0 !important;
-  pointer-events: none !important;
+  pointer-events: all !important;
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  cursor: grab !important;
+  z-index: 0 !important;
 }
 
 /* Knappar: till vänster, originalordning */
@@ -1242,6 +1248,8 @@ div.seating-module div.seating-canvas-wrapper aside {
   gap: 4px !important;
   align-items: center !important;
   flex-shrink: 0 !important;
+  z-index: 1 !important;
+  position: relative !important;
 }
 
 /* Återställ knapp-stil till original */
