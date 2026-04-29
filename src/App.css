@@ -1198,3 +1198,98 @@ div.seating-module div.seating-canvas-wrapper aside {
   flex-direction: column !important;
   gap: 6px !important;
 }
+
+
+/* === APPLE-STIL FÖNSTERKONTROLLER === */
+
+/* Titelbaren: knappar till vänster, titel centrerad */
+.module-header {
+  display: flex !important;
+  flex-direction: row-reverse !important;
+  align-items: center !important;
+  padding: 0 12px !important;
+  position: relative !important;
+}
+
+/* Knapp-containern: flytta till vänster via order */
+.module-header > div:last-child {
+  order: -1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 7px !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+}
+
+/* Drag-prickar: centrera */
+.module-header > div:nth-child(2) {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  pointer-events: none !important;
+}
+
+/* Titel-text: centrera */
+.module-header > span:first-child {
+  position: absolute !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  white-space: nowrap !important;
+}
+
+/* Alla tre knappar — runda cirklar */
+.module-header > div:last-child button {
+  width: 13px !important;
+  height: 13px !important;
+  border-radius: 50% !important;
+  border: none !important;
+  padding: 0 !important;
+  min-width: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: opacity 150ms !important;
+  flex-shrink: 0 !important;
+}
+
+/* Stäng — röd */
+.module-header > div:last-child button:nth-child(3) {
+  background: #FF5F57 !important;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.12) !important;
+}
+
+/* Minimera — gul */
+.module-header > div:last-child button:nth-child(1) {
+  background: #FEBC2E !important;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.12) !important;
+}
+
+/* Fullskärm — grön */
+.module-header > div:last-child button:nth-child(2) {
+  background: #28C840 !important;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.12) !important;
+}
+
+/* Hover: visa ikon */
+.module-header > div:last-child button:hover {
+  opacity: 0.85 !important;
+}
+
+/* Göm SVG-ikoner som redan finns i knapparna */
+.module-header > div:last-child button svg,
+.module-header > div:last-child button span {
+  opacity: 0 !important;
+  width: 8px !important;
+  height: 8px !important;
+}
+
+.module-header > div:last-child button:hover svg,
+.module-header > div:last-child button:hover span {
+  opacity: 0.6 !important;
+  color: rgba(0,0,0,0.5) !important;
+}
+/* === /APPLE-STIL FÖNSTERKONTROLLER === */
