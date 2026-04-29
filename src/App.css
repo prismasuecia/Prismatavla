@@ -1203,19 +1203,21 @@ div.seating-module div.seating-canvas-wrapper aside {
 
 
 
-/* === APPLE-STIL FÖNSTERKONTROLLER === */
 
-/* Titelbaren: knappar till VÄNSTER, titel centrerad */
+
+
+/* === FÖNSTERKONTROLLER TILL VÄNSTER === */
+
+/* Titelbaren */
 .module-header {
   display: flex !important;
   flex-direction: row !important;
   align-items: center !important;
   padding: 0 12px !important;
   position: relative !important;
-  justify-content: flex-start !important;
 }
 
-/* Titel: absolut centrerad */
+/* Titel: centrerad */
 .module-header > span:first-child {
   position: absolute !important;
   left: 50% !important;
@@ -1227,70 +1229,51 @@ div.seating-module div.seating-canvas-wrapper aside {
   pointer-events: none !important;
 }
 
-/* Drag-prickar: dölj eller centrera */
+/* Drag-prickar: dölj */
 .module-header > div:not(:last-child) {
   display: none !important;
 }
 
-/* Knappar-container: till vänster, Apple-ordning */
+/* Knappar: till vänster, originalordning */
 .module-header > div:last-child {
   display: flex !important;
   flex-direction: row !important;
-  gap: 7px !important;
+  gap: 4px !important;
   align-items: center !important;
   flex-shrink: 0 !important;
-  z-index: 1 !important;
 }
 
-/* Alla knappar — runda cirklar */
+/* Återställ knapp-stil till original */
 .module-header > div:last-child button {
-  width: 13px !important;
-  height: 13px !important;
-  border-radius: 50% !important;
+  background: transparent !important;
   border: none !important;
-  padding: 0 !important;
+  border-radius: 4px !important;
+  width: auto !important;
+  height: auto !important;
+  padding: 4px 6px !important;
   min-width: unset !important;
   min-height: unset !important;
   cursor: pointer !important;
-  flex-shrink: 0 !important;
+  color: var(--text-tertiary) !important;
+  box-shadow: none !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.15) !important;
 }
 
-/* Stäng (index 2) — röd, visa FÖRST med order */
-.module-header > div:last-child button[aria-label="Stäng"] {
-  background: #FF5F57 !important;
-  order: 1 !important;
-}
-
-/* Minimera (index 0) — gul */
-.module-header > div:last-child button[aria-label="Minimera"] {
-  background: #FEBC2E !important;
-  order: 2 !important;
-}
-
-/* Helskärm (index 1) — grön */
-.module-header > div:last-child button[aria-label="Helskärm"] {
-  background: #28C840 !important;
-  order: 3 !important;
-}
-
-/* Hover: lätt fade */
 .module-header > div:last-child button:hover {
-  filter: brightness(0.9) !important;
-}
-
-/* Ikoner i knappar: dölj normalt, visa vid hover */
-.module-header > div:last-child button > * {
-  opacity: 0 !important;
-  width: 7px !important;
-  height: 7px !important;
-  color: rgba(0,0,0,0.4) !important;
-}
-
-.module-header > div:last-child:hover button > * {
+  background: var(--surface-hover) !important;
+  color: var(--text-primary) !important;
+  filter: none !important;
   opacity: 1 !important;
 }
-/* === /APPLE-STIL FÖNSTERKONTROLLER === */
+
+/* Ikoner: synliga som vanligt */
+.module-header > div:last-child button > *,
+.module-header > div:last-child button svg {
+  opacity: 1 !important;
+  width: 14px !important;
+  height: 14px !important;
+  color: inherit !important;
+}
+/* === /FÖNSTERKONTROLLER TILL VÄNSTER === */
