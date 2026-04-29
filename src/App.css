@@ -1288,56 +1288,20 @@ div.seating-module div.seating-canvas-wrapper aside {
 /* === /FÖNSTERKONTROLLER TILL VÄNSTER === */
 
 
+
+
+
 /* === FÖNSTERKONTROLLER VÄNSTER === */
 .module-header {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  padding: 0 12px !important;
-  position: relative !important;
+  flex-direction: row-reverse !important;
 }
 .module-header > span:first-child {
   position: absolute !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
-  font-size: 13px !important;
-  font-weight: 600 !important;
-  color: var(--text-primary) !important;
-  white-space: nowrap !important;
   pointer-events: none !important;
 }
-.module-header > div:not(:last-child) {
+.module-header > div:first-of-type {
   display: none !important;
-}
-.module-header > div:last-child {
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 4px !important;
-  align-items: center !important;
-}
-.module-header > div:last-child button {
-  background: transparent !important;
-  border: none !important;
-  border-radius: 4px !important;
-  padding: 4px 5px !important;
-  width: auto !important;
-  height: auto !important;
-  min-width: unset !important;
-  min-height: unset !important;
-  cursor: pointer !important;
-  color: var(--text-tertiary) !important;
-  box-shadow: none !important;
-  filter: none !important;
-}
-.module-header > div:last-child button:hover {
-  background: rgba(0,0,0,0.06) !important;
-  color: var(--text-primary) !important;
-}
-.module-header > div:last-child button > *,
-.module-header > div:last-child button svg {
-  opacity: 1 !important;
-  width: 14px !important;
-  height: 14px !important;
-  color: inherit !important;
 }
 /* === /FÖNSTERKONTROLLER VÄNSTER === */
