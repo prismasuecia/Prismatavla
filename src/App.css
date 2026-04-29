@@ -1200,36 +1200,22 @@ div.seating-module div.seating-canvas-wrapper aside {
 }
 
 
+
+
+
 /* === APPLE-STIL FÖNSTERKONTROLLER === */
 
-/* Titelbaren: knappar till vänster, titel centrerad */
+/* Titelbaren: knappar till VÄNSTER, titel centrerad */
 .module-header {
   display: flex !important;
-  flex-direction: row-reverse !important;
+  flex-direction: row !important;
   align-items: center !important;
   padding: 0 12px !important;
   position: relative !important;
+  justify-content: flex-start !important;
 }
 
-/* Knapp-containern: flytta till vänster via order */
-.module-header > div:last-child {
-  order: -1 !important;
-  display: flex !important;
-  flex-direction: row !important;
-  gap: 7px !important;
-  align-items: center !important;
-  flex-shrink: 0 !important;
-}
-
-/* Drag-prickar: centrera */
-.module-header > div:nth-child(2) {
-  position: absolute !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  pointer-events: none !important;
-}
-
-/* Titel-text: centrera */
+/* Titel: absolut centrerad */
 .module-header > span:first-child {
   position: absolute !important;
   left: 50% !important;
@@ -1238,9 +1224,25 @@ div.seating-module div.seating-canvas-wrapper aside {
   font-weight: 600 !important;
   color: var(--text-primary) !important;
   white-space: nowrap !important;
+  pointer-events: none !important;
 }
 
-/* Alla tre knappar — runda cirklar */
+/* Drag-prickar: dölj eller centrera */
+.module-header > div:not(:last-child) {
+  display: none !important;
+}
+
+/* Knappar-container: till vänster, Apple-ordning */
+.module-header > div:last-child {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 7px !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  z-index: 1 !important;
+}
+
+/* Alla knappar — runda cirklar */
 .module-header > div:last-child button {
   width: 13px !important;
   height: 13px !important;
@@ -1248,48 +1250,47 @@ div.seating-module div.seating-canvas-wrapper aside {
   border: none !important;
   padding: 0 !important;
   min-width: unset !important;
+  min-height: unset !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  cursor: pointer !important;
-  transition: opacity 150ms !important;
-  flex-shrink: 0 !important;
+  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.15) !important;
 }
 
-/* Stäng — röd */
-.module-header > div:last-child button:nth-child(3) {
+/* Stäng (index 2) — röd, visa FÖRST med order */
+.module-header > div:last-child button[aria-label="Stäng"] {
   background: #FF5F57 !important;
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.12) !important;
+  order: 1 !important;
 }
 
-/* Minimera — gul */
-.module-header > div:last-child button:nth-child(1) {
+/* Minimera (index 0) — gul */
+.module-header > div:last-child button[aria-label="Minimera"] {
   background: #FEBC2E !important;
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.12) !important;
+  order: 2 !important;
 }
 
-/* Fullskärm — grön */
-.module-header > div:last-child button:nth-child(2) {
+/* Helskärm (index 1) — grön */
+.module-header > div:last-child button[aria-label="Helskärm"] {
   background: #28C840 !important;
-  box-shadow: 0 0 0 0.5px rgba(0,0,0,0.12) !important;
+  order: 3 !important;
 }
 
-/* Hover: visa ikon */
+/* Hover: lätt fade */
 .module-header > div:last-child button:hover {
-  opacity: 0.85 !important;
+  filter: brightness(0.9) !important;
 }
 
-/* Göm SVG-ikoner som redan finns i knapparna */
-.module-header > div:last-child button svg,
-.module-header > div:last-child button span {
+/* Ikoner i knappar: dölj normalt, visa vid hover */
+.module-header > div:last-child button > * {
   opacity: 0 !important;
-  width: 8px !important;
-  height: 8px !important;
+  width: 7px !important;
+  height: 7px !important;
+  color: rgba(0,0,0,0.4) !important;
 }
 
-.module-header > div:last-child button:hover svg,
-.module-header > div:last-child button:hover span {
-  opacity: 0.6 !important;
-  color: rgba(0,0,0,0.5) !important;
+.module-header > div:last-child:hover button > * {
+  opacity: 1 !important;
 }
 /* === /APPLE-STIL FÖNSTERKONTROLLER === */
