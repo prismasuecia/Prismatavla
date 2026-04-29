@@ -110,7 +110,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
           background: 'var(--surface-primary)',
           cursor: isLocked ? 'default' : 'grab',
           userSelect: 'none', touchAction: 'none',
-          gap: 8,
+          gap: 8, position: 'relative',
         }}
       >
         {/* Titel */}
@@ -119,11 +119,14 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
           fontWeight: 500,
           color: 'var(--text-primary)',
           fontFamily: 'var(--font-sans)',
-          flex: 1,
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
           letterSpacing: '-0.01em',
+          position: 'absolute',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          pointerEvents: 'none',
         }}>
           {config.title}
         </span>
