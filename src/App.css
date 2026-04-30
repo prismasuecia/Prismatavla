@@ -1305,3 +1305,22 @@ div.seating-module div.seating-canvas-wrapper aside {
   display: none !important;
 }
 /* === /FÖNSTERKONTROLLER VÄNSTER === */
+
+
+/* === SCROLL-GRADIENT === */
+.module-content {
+  position: relative !important;
+}
+
+.module-content::after {
+  content: '' !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  display: block !important;
+  height: 48px !important;
+  background: linear-gradient(to bottom, transparent, var(--surface-primary)) !important;
+  pointer-events: none !important;
+  flex-shrink: 0 !important;
+  margin-top: -48px !important;
+}
+/* === /SCROLL-GRADIENT === */
