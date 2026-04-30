@@ -101,7 +101,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       {/* Header */}
       <header
         className="module-header"
-        onPointerDown={onHeaderPointerDown}
+        onPointerDown={onHeaderPointerDown} onTouchStart={(e) => { const t = e.touches[0]; onHeaderPointerDown({ ...e, clientX: t.clientX, clientY: t.clientY, preventDefault: () => e.preventDefault(), target: e.target } as any) }}
         style={{
           display: 'flex', alignItems: 'center',
           padding: '0 12px 0 14px',
