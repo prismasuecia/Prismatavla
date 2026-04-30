@@ -38,7 +38,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     e.preventDefault()
     actions.bringModuleToFront(layout.moduleId)
     dragRef.current = { px: pos.x, py: pos.y, mx: e.clientX, my: e.clientY }
-    const move = (ev: PointerEvent) => {
+    const move = (ev: PointerEvent | MouseEvent) => {
       if (!dragRef.current) return
       actions.updateModulePosition({
         moduleId: layout.moduleId,
@@ -50,7 +50,9 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     }
     const up = () => { dragRef.current = null; document.removeEventListener('pointermove', move); document.removeEventListener('pointerup', up) }
     document.addEventListener('pointermove', move)
+    document.addEventListener('mousemove', move)
     document.addEventListener('pointerup', up)
+    document.addEventListener('mouseup', up)
   }
 
   const makeResizeHandlers = (dir: string) => ({
