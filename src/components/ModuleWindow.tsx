@@ -32,7 +32,34 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
   const dragRef = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
   const resizeRef = useRef<{ dir: string; sw: number; sh: number; mx: number; my: number } | null>(null)
 
-  const onHeaderPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+
+  const onHeaderTouchStart = (e: React.TouchEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return
+    if (isLocked) return
+    const t = e.touches[0]
+    actions.bringModuleToFront(layout.moduleId)
+    dragRef.current = { px: pos.x, py: pos.y, mx: t.clientX, my: t.clientY }
+    const move = (ev: TouchEvent) => {
+      if (!dragRef.current) return
+      const touch = ev.touches[0]
+      actions.updateModulePosition({
+        moduleId: layout.moduleId,
+        position: {
+          x: Math.max(0, dragRef.current.px + touch.clientX - dragRef.current.mx),
+          y: Math.max(0, dragRef.current.py + touch.clientY - dragRef.current.my),
+        }
+      })
+    }
+    const up = () => {
+      dragRef.current = null
+      document.removeEventListener('touchmove', move)
+      document.removeEventListener('touchend', up)
+    }
+    document.addEventListener('touchmove', move, { passive: true })
+    document.addEventListener('touchend', up)
+  }
+
+    const onHeaderPointerDown = (e: React.PointerEvent<HTMLElement>) => {
     if ((e.target as HTMLElement).closest('button')) return
     if (isLocked) return
     e.preventDefault()
@@ -103,7 +130,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       {/* Header */}
       <header
         className="module-header"
-        onPointerDown={onHeaderPointerDown} onTouchStart={(e) => { const t = e.touches[0]; onHeaderPointerDown({ ...e, clientX: t.clientX, clientY: t.clientY, preventDefault: () => e.preventDefault(), target: e.target } as any) }}
+        onPointerDown={onHeaderPointerDown} onTouchStart={onHeaderTouchStart}
         style={{
           display: 'flex', alignItems: 'center',
           padding: '0 12px 0 14px',
