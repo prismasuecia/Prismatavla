@@ -190,7 +190,7 @@ function ModuleWindowShell({
   supportsFullscreen,
 }: ModuleWindowShellProps) {
   return (
-    <div className="module-surface">
+    <>
       <header className="module-header">
         <strong>{title}</strong>
         <div className="module-actions">
@@ -208,7 +208,7 @@ function ModuleWindowShell({
         </div>
       </header>
       <div className="module-content">{children}</div>
-    </div>
+    </>
   )
 }
 
