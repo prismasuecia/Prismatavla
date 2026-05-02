@@ -130,6 +130,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       maxWidth={viewportLimits.maxWidth}
       maxHeight={viewportLimits.maxHeight}
       bounds="window"
+      enableUserSelectHack={false}
       disableDragging={isLocked}
       enableResizing={isLocked ? disabledHandles : RESIZE_HANDLES}
       resizeHandleComponent={resizeHandles}
