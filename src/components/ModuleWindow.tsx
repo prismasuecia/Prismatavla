@@ -121,6 +121,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
 
   return (
     <Rnd
+        enableUserSelectHack={false}
       className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
       style={{ zIndex: layout.zIndex }}
       size={currentSize}
