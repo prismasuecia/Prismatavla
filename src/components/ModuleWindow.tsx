@@ -63,6 +63,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     if ((e.target as HTMLElement).closest('button')) return
     if (isLocked) return
     e.preventDefault()
+    try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch(_) {}
     actions.bringModuleToFront(layout.moduleId)
     dragRef.current = { px: pos.x, py: pos.y, mx: e.clientX, my: e.clientY }
     const move = (ev: PointerEvent | MouseEvent) => {
@@ -186,7 +187,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
             <X size={13} />
           </WinBtn>
         </div>
-      </header>
+      </div>
 
       {/* Innehåll */}
       <div className="module-content" style={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
