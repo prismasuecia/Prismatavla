@@ -80,7 +80,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
   }
 
   const header = (
-    <header
+    <div
       className="module-header drag-handle"
       style={{
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -88,6 +88,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         borderBottom: '1px solid var(--border-subtle)',
         background: 'var(--surface-primary)',
         cursor: isLocked ? 'default' : 'grab',
+        WebkitAppearance: 'none',
         userSelect: 'none',
       }}
     >
@@ -103,7 +104,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         )}
         <WinBtn label="Stäng" onClick={handleClose} danger><X size={14} /></WinBtn>
       </div>
-    </header>
+    </div>
   )
 
   if (isFullscreen) {
