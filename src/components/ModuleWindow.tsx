@@ -132,9 +132,9 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       bounds="window"
       enableUserSelectHack={false}
       disableDragging={isLocked}
+      cancel=".module-content,button,input,textarea,select,a"
       enableResizing={isLocked ? disabledHandles : RESIZE_HANDLES}
       resizeHandleComponent={resizeHandles}
-      dragHandleClassName="module-header"
       onMouseDown={handleBringToFront}
       onDrag={(_event, data) => {
         if (isLocked) return
