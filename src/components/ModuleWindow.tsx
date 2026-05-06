@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import clsx from 'clsx'
 import { Minus, X, Maximize2, Minimize2 } from 'lucide-react'
 import { useBoardStore, type ModuleWindowLayout } from '../store/useBoardStore'
@@ -28,13 +28,55 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     width: layout.size?.width ?? fallbackSize.width,
     height: layout.size?.height ?? fallbackSize.height,
   }
-  const viewportLimits = useViewportLimits()
-
   // Drag state
   const dragRef = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
   const resizeRef = useRef<{ pw: number; ph: number; mx: number; my: number } | null>(null)
 
+  useEffect(() => {
+    return () => {
+      dragRef.current = null
+      resizeRef.current = null
+    }
+  }, [])
+
   const onHeaderPointerDown = (e: React.PointerEvent<HTMLElement>) => {
+    if ((e.target as HTMLElement).closest('button')) return
+    if (isLocked) return
+    e.preventDefault()
+    e.currentTarget.setPointerCapture?.(e.pointerId)
+    actions.bringModuleToFront(layout.moduleId)
+
+    dragRef.current = {
+      px: layout.position?.x ?? 100,
+      py: layout.position?.y ?? 100,
+      mx: e.clientX,
+      my: e.clientY,
+    }
+
+    const move = (ev: PointerEvent) => {
+      if (!dragRef.current) return
+      ev.preventDefault()
+      const newX = Math.max(0, dragRef.current.px + ev.clientX - dragRef.current.mx)
+      const newY = Math.max(0, dragRef.current.py + ev.clientY - dragRef.current.my)
+      actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: newX, y: newY } })
+    }
+
+    const up = () => {
+      dragRef.current = null
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      window.removeEventListener('blur', up)
+    }
+
+    window.addEventListener('pointermove', move, { passive: false })
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    window.addEventListener('blur', up)
+  }
+
+  const onHeaderMouseDown = (e: React.MouseEvent<HTMLElement>) => {
+    if (typeof globalThis.PointerEvent !== 'undefined') return
     if ((e.target as HTMLElement).closest('button')) return
     if (isLocked) return
     e.preventDefault()
@@ -47,8 +89,9 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       my: e.clientY,
     }
 
-    const move = (ev: PointerEvent) => {
+    const move = (ev: MouseEvent) => {
       if (!dragRef.current) return
+      ev.preventDefault()
       const newX = Math.max(0, dragRef.current.px + ev.clientX - dragRef.current.mx)
       const newY = Math.max(0, dragRef.current.py + ev.clientY - dragRef.current.my)
       actions.updateModulePosition({ moduleId: layout.moduleId, position: { x: newX, y: newY } })
@@ -56,17 +99,20 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
 
     const up = () => {
       dragRef.current = null
-      document.removeEventListener('pointermove', move)
-      document.removeEventListener('pointerup', up)
+      window.removeEventListener('mousemove', move)
+      window.removeEventListener('mouseup', up)
+      window.removeEventListener('blur', up)
     }
 
-    document.addEventListener('pointermove', move)
-    document.addEventListener('pointerup', up)
+    window.addEventListener('mousemove', move, { passive: false })
+    window.addEventListener('mouseup', up)
+    window.addEventListener('blur', up)
   }
 
   const onResizePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isLocked) return
     e.preventDefault()
+    e.currentTarget.setPointerCapture?.(e.pointerId)
     actions.bringModuleToFront(layout.moduleId)
 
     resizeRef.current = {
@@ -78,6 +124,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
 
     const move = (ev: PointerEvent) => {
       if (!resizeRef.current) return
+      ev.preventDefault()
       const newW = Math.max(MIN_WIDTH, resizeRef.current.pw + ev.clientX - resizeRef.current.mx)
       const newH = Math.max(MIN_HEIGHT, resizeRef.current.ph + ev.clientY - resizeRef.current.my)
       actions.updateModuleSize({ moduleId: layout.moduleId, size: { width: newW, height: newH } })
@@ -85,12 +132,16 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
 
     const up = () => {
       resizeRef.current = null
-      document.removeEventListener('pointermove', move)
-      document.removeEventListener('pointerup', up)
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      window.removeEventListener('pointercancel', up)
+      window.removeEventListener('blur', up)
     }
 
-    document.addEventListener('pointermove', move)
-    document.addEventListener('pointerup', up)
+    window.addEventListener('pointermove', move, { passive: false })
+    window.addEventListener('pointerup', up)
+    window.addEventListener('pointercancel', up)
+    window.addEventListener('blur', up)
   }
 
   const handleRestore = () => actions.restoreModule(layout.moduleId)
@@ -124,6 +175,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
     <div
       className="module-header"
       onPointerDown={onHeaderPointerDown}
+      onMouseDown={onHeaderMouseDown}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -277,25 +329,4 @@ function WinBtn({ label, onClick, danger, children }: WinBtnProps) {
       {children}
     </button>
   )
-}
-
-interface ViewportLimits {
-  maxWidth: number
-  maxHeight: number
-}
-const getViewportLimits = (): ViewportLimits => {
-  if (typeof window === 'undefined') return { maxWidth: 1200, maxHeight: 800 }
-  return {
-    maxWidth: Math.max(MIN_WIDTH, Math.floor(window.innerWidth * 0.9)),
-    maxHeight: Math.max(MIN_HEIGHT, Math.floor(window.innerHeight * 0.9)),
-  }
-}
-function useViewportLimits() {
-  const [limits, setLimits] = useState<ViewportLimits>(() => getViewportLimits())
-  useEffect(() => {
-    const h = () => setLimits(getViewportLimits())
-    window.addEventListener('resize', h)
-    return () => window.removeEventListener('resize', h)
-  }, [])
-  return limits
 }

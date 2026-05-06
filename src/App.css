@@ -1301,9 +1301,6 @@ div.seating-module div.seating-canvas-wrapper aside {
   transform: translateX(-50%) !important;
   pointer-events: none !important;
 }
-.module-header > div:first-of-type {
-  display: none !important;
-}
 /* === /FÖNSTERKONTROLLER VÄNSTER === */
 
 

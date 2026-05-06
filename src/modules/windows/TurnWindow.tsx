@@ -18,6 +18,7 @@ interface PersistedWheelState {
   names: string[]
   drawnNames: string[]
   history: string[]
+  wheelNames: string[]
   rotation: number
   excludeDrawn: boolean
 }
@@ -43,6 +44,7 @@ const DEFAULT_WHEEL_STATE: PersistedWheelState = {
   names: [],
   drawnNames: [],
   history: [],
+  wheelNames: [],
   rotation: 0,
   excludeDrawn: true,
 }
@@ -69,6 +71,7 @@ export function TurnWindow() {
   const [selectedClass, setSelectedClass] = useState(initialClassSelection)
   const [className, setClassName] = useState('')
   const [rotation, setRotation] = useState(persistedState.rotation)
+  const [wheelNames, setWheelNames] = useState<string[]>(persistedState.wheelNames)
   const [isSpinning, setIsSpinning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const updateNames = (updater: string[] | ((prev: string[]) => string[])) => {
@@ -76,6 +79,7 @@ export function TurnWindow() {
       const next = typeof updater === 'function' ? (updater as (prevNames: string[]) => string[])(prev) : updater
       setDrawnNames((prevDrawn) => prevDrawn.filter((name) => next.includes(name)))
       setHistory((prevHistory) => prevHistory.filter((name) => next.includes(name)))
+      setWheelNames([])
       return next
     })
   }
@@ -88,8 +92,20 @@ export function TurnWindow() {
     return remaining
   }, [names, drawnNames, excludeDrawn])
 
-  const selectedIndex = useMemo(() => getSelectedIndex(availableNames, rotation), [availableNames, rotation])
+  const displayNames = useMemo(() => {
+    const validWheelNames = wheelNames.filter((name) => names.includes(name))
+    return validWheelNames.length ? validWheelNames : availableNames
+  }, [availableNames, names, wheelNames])
   const lastDrawn = history[0] ?? null
+  const selectedIndex = useMemo(() => {
+    if (!isSpinning && lastDrawn) {
+      const drawnIndex = displayNames.indexOf(lastDrawn)
+      if (drawnIndex >= 0) {
+        return drawnIndex
+      }
+    }
+    return getSelectedIndex(displayNames, rotation)
+  }, [displayNames, isSpinning, lastDrawn, rotation])
   const classOptions = useMemo(() => Object.keys(classes).sort((a, b) => a.localeCompare(b)), [classes])
 
   useEffect(() => {
@@ -101,6 +117,7 @@ export function TurnWindow() {
         names,
         drawnNames,
         history,
+        wheelNames,
         rotation,
         excludeDrawn,
       }
@@ -108,7 +125,7 @@ export function TurnWindow() {
     } catch (error) {
       console.warn('Kunde inte spara Tur i tur-data', error)
     }
-  }, [names, drawnNames, history, rotation, excludeDrawn])
+  }, [names, drawnNames, history, wheelNames, rotation, excludeDrawn])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -153,13 +170,13 @@ export function TurnWindow() {
 
   useEffect(() => {
     drawWheel(canvasRef.current, {
-      names: availableNames,
+      names: displayNames,
       rotation,
       size: canvasSize,
       isSpinning,
       selectedIndex,
     })
-  }, [availableNames, rotation, canvasSize, isSpinning, selectedIndex])
+  }, [displayNames, rotation, canvasSize, isSpinning, selectedIndex])
 
   useEffect(() => () => {
     if (animationRef.current) {
@@ -215,10 +232,14 @@ export function TurnWindow() {
       cancelAnimationFrame(animationRef.current)
     }
     const spinPool = [...availableNames]
-    const spins = 5 + Math.random() * 4
-    const randomAngle = Math.random() * TAU
+    setWheelNames(spinPool)
+    const winnerIndex = Math.floor(Math.random() * spinPool.length)
+    const winner = spinPool[winnerIndex]
+    const finalRotation = getRotationForIndex(winnerIndex, spinPool.length)
+    const spins = 5 + Math.floor(Math.random() * 4)
     const startRotation = rotation
-    const targetRotation = startRotation + spins * TAU + randomAngle
+    const rotationDelta = getPositiveRotationDelta(startRotation, finalRotation)
+    const targetRotation = startRotation + spins * TAU + rotationDelta
     const duration = 1800
     let startTime: number | null = null
 
@@ -235,15 +256,7 @@ export function TurnWindow() {
         animationRef.current = requestAnimationFrame(step)
         return
       }
-      const normalized = normalizeAngle(nextRotation)
-      const sliceAngle = TAU / spinPool.length
-      const pointerAngle = -Math.PI / 2
-      const relativeAngle = (pointerAngle - normalized + TAU) % TAU
-      const index = Math.floor(relativeAngle / sliceAngle) % spinPool.length
-      const midpoint = (index + 0.5) * sliceAngle
-      const snappedRotation = normalizeAngle(pointerAngle - midpoint + 1e-4)
-      setRotation(snappedRotation)
-      const winner = spinPool[index]
+      setRotation(finalRotation)
       if (winner) {
         setHistory((prev) => [winner, ...prev].slice(0, MAX_HISTORY))
         setDrawnNames((prev) => (prev.includes(winner) ? prev : [winner, ...prev]))
@@ -273,6 +286,7 @@ export function TurnWindow() {
     updateNames([])
     setDrawnNames([])
     setHistory([])
+    setWheelNames([])
     setRotation(0)
     setStatusMessage('Hjulet är tömt.')
   }
@@ -283,6 +297,7 @@ export function TurnWindow() {
     }
     setDrawnNames([])
     setHistory([])
+    setWheelNames([])
     setStatusMessage('Alla namn är tillbaka i hjulet.')
   }
 
@@ -299,6 +314,7 @@ export function TurnWindow() {
     updateNames(next)
     setDrawnNames([])
     setHistory([])
+    setWheelNames([])
     setRotation(0)
     setStatusMessage('Aktiv klasslista inläst.')
   }
@@ -335,6 +351,7 @@ export function TurnWindow() {
     updateNames(payload.names)
     setDrawnNames([])
     setHistory([])
+    setWheelNames([])
     setRotation(0)
     setStatusMessage(`Laddade ${selectedClass}.`)
   }
@@ -589,6 +606,20 @@ function getSelectedIndex(names: string[], rotation: number) {
   return Math.floor(relativeAngle / sliceAngle) % names.length
 }
 
+function getRotationForIndex(index: number, total: number) {
+  if (total <= 0) {
+    return 0
+  }
+  const sliceAngle = TAU / total
+  const pointerAngle = -Math.PI / 2
+  const midpoint = (index + 0.5) * sliceAngle
+  return normalizeAngle(pointerAngle - midpoint)
+}
+
+function getPositiveRotationDelta(fromRotation: number, toRotation: number) {
+  return (normalizeAngle(toRotation) - normalizeAngle(fromRotation) + TAU) % TAU
+}
+
 function normalizeAngle(value: number) {
   let angle = value % TAU
   if (angle < 0) {
@@ -730,7 +761,48 @@ function drawWheel(canvas: HTMLCanvasElement | null, options: DrawOptions) {
   })
 
   context.restore()
+  if (!isSpinning && selectedIndex >= 0) {
+    drawSelectedBadge(context, names[selectedIndex], center, size)
+  }
   drawPointer(context, center, size)
+}
+
+function drawSelectedBadge(context: CanvasRenderingContext2D, name: string | undefined, center: number, size: number) {
+  if (!name) {
+    return
+  }
+  const fontSize = Math.max(13, Math.min(17, size * 0.032))
+  context.save()
+  context.font = `700 ${fontSize}px "Inter", "Segoe UI", sans-serif`
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  const text = name.split(' ')[0] ?? name
+  const paddingX = 14
+  const width = context.measureText(text).width + paddingX * 2
+  const height = fontSize + 14
+  const x = center - width / 2
+  const y = size * 0.22
+  const radius = 10
+
+  context.beginPath()
+  context.moveTo(x + radius, y)
+  context.lineTo(x + width - radius, y)
+  context.quadraticCurveTo(x + width, y, x + width, y + radius)
+  context.lineTo(x + width, y + height - radius)
+  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
+  context.lineTo(x + radius, y + height)
+  context.quadraticCurveTo(x, y + height, x, y + height - radius)
+  context.lineTo(x, y + radius)
+  context.quadraticCurveTo(x, y, x + radius, y)
+  context.closePath()
+  context.fillStyle = 'rgba(31, 42, 36, 0.88)'
+  context.fill()
+  context.strokeStyle = 'rgba(255, 255, 255, 0.9)'
+  context.lineWidth = 2
+  context.stroke()
+  context.fillStyle = '#fff'
+  context.fillText(text, center, y + height / 2)
+  context.restore()
 }
 
 function drawPointer(context: CanvasRenderingContext2D, center: number, size: number) {
@@ -768,11 +840,28 @@ function loadWheelState(): PersistedWheelState {
       return DEFAULT_WHEEL_STATE
     }
     const parsed = JSON.parse(stored)
+    const names = Array.isArray(parsed?.names) ? parsed.names : []
+    const drawnNames = Array.isArray(parsed?.drawnNames) ? parsed.drawnNames : []
+    const history = Array.isArray(parsed?.history) ? parsed.history : []
+    const storedWheelNames = Array.isArray(parsed?.wheelNames) ? parsed.wheelNames : []
+    let wheelNames = storedWheelNames
+    let rotation = typeof parsed?.rotation === 'number' ? parsed.rotation : 0
+
+    if (history[0] && (!wheelNames.length || !wheelNames.includes(history[0]))) {
+      const lastDrawn = history[0]
+      wheelNames = names.filter((name) => !drawnNames.includes(name) || name === lastDrawn)
+      const selectedIndex = wheelNames.indexOf(lastDrawn)
+      if (selectedIndex >= 0) {
+        rotation = getRotationForIndex(selectedIndex, wheelNames.length)
+      }
+    }
+
     return {
-      names: Array.isArray(parsed?.names) ? parsed.names : [],
-      drawnNames: Array.isArray(parsed?.drawnNames) ? parsed.drawnNames : [],
-      history: Array.isArray(parsed?.history) ? parsed.history : [],
-      rotation: typeof parsed?.rotation === 'number' ? parsed.rotation : 0,
+      names,
+      drawnNames,
+      history,
+      wheelNames,
+      rotation,
       excludeDrawn: typeof parsed?.excludeDrawn === 'boolean' ? parsed.excludeDrawn : true,
     }
   } catch (error) {
