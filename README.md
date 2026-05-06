@@ -1,6 +1,9 @@
 # Prisma Tavla – Teacher Canvas
 
 Prisma Tavla är nu ombyggd som en Classroomscreen-liknande lärarduk: en helskärms-canvas med lugn bakgrund, bottendocka och flytande moduler som öppnas vid behov. All state hanteras av Zustand och sparas lokalt (nyckel `prisma_tavla_v2`) så att inga elevnamn lämnar enheten.
+
+Läs den styrande produkt- och designfilosofin i [PRISMA-TAVLA-FILOSOFI.md](PRISMA-TAVLA-FILOSOFI.md). Den ska vägleda alla framtida beslut om funktioner, gränssnitt, rörelse, färg, NPF-perspektiv och klassrumsanvändning.
+
 ## Funktioner
 - **Dockade verktyg** – modulregistret exponerar alla appar via dockan; max tre fönster kan vara öppna åt gången och status indikeras direkt på ikonerna.
 - **Flytande moduler** – öppnas som dragbara fönster (max tre samtidigt). De kan minimeras till "chips" nära senaste positionen och får rätt z-index vid fokus. I projektorläge/telefon låses positionerna och fönster blir fullbredd.
