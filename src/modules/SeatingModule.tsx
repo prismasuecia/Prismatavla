@@ -147,6 +147,17 @@ export function SeatingModule() {
     actions.updateSeatingPlan(activeClassId, plan.id, { name: planNameDraft })
   }
 
+  const handleEditFurniture = () => {
+    if (!plan) return
+    setNewDraft(false)
+    setLayoutDraft(plan.layoutType)
+    setSeatCountChoice('custom')
+    setCustomSeatCount(plan.seatCount)
+    setSelectedSeatId(null)
+    setLockMode(false)
+    setStep(2)
+  }
+
   const handleCreatePlan = () => {
     if (!activeClassId) {
       return
@@ -468,6 +479,7 @@ export function SeatingModule() {
       </section></>}
 
       {step === 3 && <section className="control-row actions">
+        <button type="button" onClick={handleEditFurniture}>Ändra möblering</button>
         <button type="button" disabled={!undo || undo.planId !== plan.id || undo.classId !== activeClassId || undo.after !== JSON.stringify(plan.assignments)} onClick={() => {
           if (!undo || undo.planId !== plan.id || undo.classId !== activeClassId || undo.after !== JSON.stringify(plan.assignments)) return
           actions.updateSeatingPlan(activeClassId, plan.id, { assignments: undo.before.assignments })
@@ -489,6 +501,7 @@ export function SeatingModule() {
         <button type="button" className="primary" onClick={() => setStep(4)}>Klar med placeringen</button>
       </section>}
       {step === 4 && <section className="control-row actions">
+        <button type="button" onClick={handleEditFurniture}>Ändra möblering</button>
         <button type="button" onClick={handleExportPDF}>
           <FileDown size={16} aria-hidden="true" /> PDF
         </button>
