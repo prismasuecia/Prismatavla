@@ -1,5 +1,28 @@
 # Omrostning: hemlig nyckel pa servern
 
+## Feedback - forberett men inte aktiverat
+
+`/feedback` anvander Cloudflare Email Service och fungerar forst efter:
+
+- Verifiera mottagaradressen i Cloudflare Destination Addresses.
+- Registrera en separat avsandarsubdoman hos Email Service och verifiera dess
+  DNS-poster. Andra INTE huvuddom anens MX-poster eller ordinarie e-post.
+- Bind `FEEDBACK_MAILER` som send_email, helst begransad till mottagaren.
+- Spara `FEEDBACK_TO` och `FEEDBACK_FROM` som serverhemligheter. Mottagaren
+  ska aldrig laggas i frontend, Wrangler-filen eller publikt repository.
+- Bind `FEEDBACK_LIMITER` (namespace 1002, limit 6, period 60).
+- Driftsatt Worker-koden och gor ett verkligt test till mottagarens inkorg.
+  Ett accepterat anrop ar inte bevis pa leverans i inkorgen.
+
+Frontend anvander VITE_FEEDBACK_URL eller /feedback pa VITE_POLL_AUTH_URL.
+Inga bilagor eller elevdata ska skickas. Fel behaller lararens text; framgang
+visas bara efter att e-posttjansten accepterat meddelandet. Ursprungskontroll,
+honeypot och rate limit ar grundskydd, inte fullstandigt botskydd.
+
+Tester: `node --test server/poll-auth/*.test.mjs`.
+
+Dokumentation: https://developers.cloudflare.com/email-service/api/send-emails/workers-api/
+
 Status 2026-11-27: Worker driftsatt, ny ABLY_API_KEY sparad som Secret och
 gammal Root-nyckel sparrad av kontoagaren. Signerad biljett accepterades av
 Ably; publik larar-/elevvy och en rost testades. GitHub Pages serverar appen.

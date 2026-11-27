@@ -279,7 +279,7 @@ const clampSize = (size: { width: number; height: number }) => {
   }
 
   const maxWidth = Math.max(MIN_MODULE_WIDTH, Math.floor(window.innerWidth * 0.9))
-  const maxHeight = Math.max(MIN_MODULE_HEIGHT, window.innerHeight - 184)
+  const maxHeight = Math.max(MIN_MODULE_HEIGHT, window.innerHeight - 88)
 
   return {
     width: Math.min(width, maxWidth),
@@ -292,10 +292,10 @@ const clampPosition = (position: { x: number; y: number }, size?: { width: numbe
   const moduleWidth = size?.width ?? MIN_MODULE_WIDTH
   const moduleHeight = size?.height ?? MIN_MODULE_HEIGHT
   const maxX = window.innerWidth - moduleWidth - 24
-  const maxY = window.innerHeight - moduleHeight - 96
+  const maxY = window.innerHeight - moduleHeight - 64
   return {
     x: Math.min(Math.max(24, position.x), Math.max(24, maxX)),
-    y: Math.min(Math.max(84, position.y), Math.max(84, maxY)),
+    y: Math.min(Math.max(12, position.y), Math.max(12, maxY)),
   }
 }
 

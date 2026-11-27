@@ -9,6 +9,7 @@ import { Dock } from './components/Dock'
 import { TrafficBadge } from './components/TrafficBadge'
 import { useTimerTicker } from './hooks/useTimerTicker'
 import { StudentPollPage } from './pages/StudentPollPage'
+import { Feedback } from './components/Feedback'
 
 function App() {
   useTimerTicker()
@@ -29,8 +30,8 @@ function App() {
     const widths = [leftWidth, available - leftWidth]
     let x = gap
     ordered.forEach((layout, index) => {
-      windowActions.updateModuleSize({ moduleId: layout.moduleId, size: { width: widths[index], height: window.innerHeight - 184 } })
-      windowActions.updateModulePosition({ moduleId: layout.moduleId, position: { x, y: 84 } })
+      windowActions.updateModuleSize({ moduleId: layout.moduleId, size: { width: widths[index], height: window.innerHeight - 124 } })
+      windowActions.updateModulePosition({ moduleId: layout.moduleId, position: { x, y: 60 } })
       x += widths[index] + gap
     })
   }
@@ -75,6 +76,7 @@ function App() {
     <div className="teacher-board">
       {!fullscreenModuleId && <header className="board-identity">
         <span>PRISMA TAVLA</span>
+        <Feedback />
         {visibleWindows.length === 2 && <button className="board-arrange" type="button" onClick={arrangePair} title="Ordna verktygen bredvid varandra" aria-label="Ordna verktygen bredvid varandra"><Columns2 size={22} /></button>}
       </header>}
       <ModuleLayer />

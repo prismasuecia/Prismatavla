@@ -1,9 +1,11 @@
 import { Rest } from 'ably'
+import { handleFeedback } from './feedback.mjs'
 
 const TOKEN_TTL = 10 * 60 * 1000
 
 export default {
   async fetch(request, env) {
+    if (new URL(request.url).pathname === '/feedback') return handleFeedback(request, env)
     const origin = request.headers.get('Origin')
     const allowed = (env.ALLOWED_ORIGINS ?? '').split(',').map((item) => item.trim()).filter(Boolean)
     const headers = { 'Cache-Control': 'no-store', Vary: 'Origin' }
