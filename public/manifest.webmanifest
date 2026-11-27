@@ -2,20 +2,20 @@
   "name": "Prisma Tavla",
   "short_name": "Prisma Tavla",
   "description": "Digital lärarduk för klassrummet",
-  "start_url": "/Prismatavla/",
-  "scope": "/Prismatavla/",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#F4F0E8",
   "theme_color": "#F4F0E8",
   "icons": [
     {
-      "src": "/Prismatavla/brand/prisma-app-icon-512.jpg",
+      "src": "/brand/prisma-app-icon-512.jpg",
       "sizes": "512x512",
       "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "/Prismatavla/brand/apple-touch-icon.jpg",
+      "src": "/brand/apple-touch-icon.jpg",
       "sizes": "180x180",
       "type": "image/jpeg",
       "purpose": "any"

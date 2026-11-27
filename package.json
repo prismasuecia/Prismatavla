@@ -13,9 +13,9 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
-    "postdeploy": "echo 'Deployment to prismasuecia.github.io/Prismatavla complete!'"
+    "postdeploy": "echo 'Deployment to tavla.prismautbildning.se complete!'"
   },
-  "homepage": "https://prismasuecia.github.io/Prismatavla/",
+  "homepage": "https://tavla.prismautbildning.se/",
   "dependencies": {
     "ably": "^2.21.0",
     "clsx": "^2.1.1",
