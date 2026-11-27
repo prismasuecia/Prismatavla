@@ -1,0 +1,84 @@
+/* Material presentation. Timer state and module interactions remain module-owned. */
+.seating-class-choices { display:flex; flex-wrap:wrap; gap:12px; }
+.seating-class-choices button[aria-pressed="true"] { background:var(--accent) !important; color:var(--accent-contrast,#fff) !important; }
+.seating-class-form { display:grid; gap:10px; width:100%; max-width:580px; text-align:left; }
+.seating-class-form h2 { margin:12px 0; }
+.seating-class-form :is(input,textarea) { width:100%; min-width:0; padding:12px; }
+.seating-class-form textarea { min-height:170px; }
+.seating-class-form button { justify-self:start; display:inline-flex; align-items:center; gap:8px; }
+.seating-class-note { font-size:14px; color:var(--text-secondary); margin:0 0 6px; }
+.teacher-board .module-header { flex-direction:row !important; }
+.module-window-fullscreen .module-header > span:first-child { position:static !important; left:auto !important; transform:none !important; flex:1; order:-1; text-align:left !important; }
+.board-identity { position:absolute; inset:24px 24px auto; display:flex; align-items:center; gap:22px; pointer-events:none; z-index:10001; font-size:24px; font-weight:400; letter-spacing:0; }
+.board-arrange { pointer-events:auto; display:flex; align-items:center; justify-content:center; width:36px; height:36px; border:0; border-radius:4px; color:var(--text-primary); background:transparent; cursor:pointer; }
+.board-arrange:hover { background:var(--surface-hover); }
+.teacher-board .traffic-badge { top:20px; left:auto; right:24px; max-width:45%; background:transparent; color:var(--text-primary); border:0; box-shadow:none; padding:2px 0; gap:12px; }
+.teacher-board .traffic-badge span { display:none; }
+.teacher-board .traffic-badge strong { font-size:22px; font-weight:400; }
+.teacher-board .traffic-badge svg { width:30px; height:30px; }
+[data-fullscreen="on"] .teacher-board .traffic-badge { display:none; }
+.module-window { box-shadow:0 5px 20px rgba(28,49,39,.10) !important; border:0 !important; }
+.module-window .module-header { min-height:56px !important; padding:0 22px !important; }
+.module-window .module-header > span:first-child { position:static !important; left:auto !important; transform:none !important; order:-1 !important; text-align:left !important; text-transform:uppercase; font-size:14px !important; font-weight:400 !important; }
+.module-window .module-header > div:last-child { gap:4px !important; order:1 !important; margin-left:auto; }
+.module-window .module-header > div:last-child button { width:32px !important; height:32px !important; border:0 !important; border-radius:3px !important; background:transparent !important; opacity:.8; }
+.module-window .module-header > div:last-child button:hover { opacity:1; background:var(--surface-hover) !important; }
+.module-content { scrollbar-gutter:stable; }
+.module-content button { min-height:36px; font-size:14px !important; border-radius:4px !important; font-weight:400 !important; box-shadow:none !important; }
+.module-content :is(input,textarea,select) { font-size:15px !important; line-height:1.5; box-shadow:none !important; }
+.module-content textarea { resize:vertical; }
+.module-content :is(h2,h3) { font-weight:400 !important; }
+.dock { padding:12px 24px 16px; gap:14px; justify-content:flex-start; }
+.dock .dock-item { flex-direction:row; gap:8px; min-width:0; padding:10px 3px 14px; }
+.dock .dock-item span { font-size:14px; }
+.dock .dock-item svg { width:24px; height:24px; }
+.dock .dock-item[data-active="true"]::after { width:100%; bottom:3px; }
+.timer-editorial.timer-material { width:100%; min-height:100%; display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(230px,1fr) auto auto auto auto; align-items:center; justify-items:center; padding:0 22px 8px; gap:6px; }
+.timer-editorial.timer-material > .timer-material-dial { width:min(100%,320px) !important; max-height:100%; aspect-ratio:1; min-height:0; display:flex; align-items:center; justify-content:center; }
+.timer-material-dial svg { max-height:100%; }
+.timer-material-time > span:last-child { margin-top:2px !important; }
+.timer-editorial.timer-material .timer-material-time { grid-row:2; }
+.timer-editorial.timer-material .timer-material-time > span:first-child { font-size:42px !important; line-height:1.1 !important; }
+.timer-editorial.timer-material .timer-material-actions { grid-row:3; display:flex; gap:12px; justify-content:center; width:100%; }
+.timer-material-actions > button:first-child { min-width:140px; }
+.timer-editorial.timer-material .timer-material-presets { grid-row:4; width:100%; display:flex; flex-wrap:wrap; gap:2px 8px; justify-content:space-between; }
+.timer-editorial.timer-material .timer-material-presets button { padding:4px 3px !important; background:transparent !important; border:0 !important; border-radius:0 !important; border-bottom:2px solid transparent !important; color:var(--text-primary) !important; }
+.timer-editorial.timer-material .timer-material-presets button[aria-pressed="true"] { border-bottom-color:var(--accent) !important; }
+.timer-editorial.timer-material .timer-material-custom { grid-row:5; border-top:1px solid var(--border-subtle); border-radius:0 !important; padding:12px 0 0 !important; background:transparent !important; flex-wrap:wrap; }
+.timer-material-custom input { flex:1; max-width:100px; }
+.timer-material-custom label { margin-right:auto; }
+.timer-editorial.timer-material > [role="alert"] { grid-row:6; color:var(--text-primary); font-size:14px; }
+.module-window-fullscreen .timer-editorial.timer-material > .timer-material-dial { width:min(600px,100%,52vh) !important; }
+.instruction-editorial { position:relative; }
+.instruction-editorial > div:first-child { justify-content:flex-end; padding:0 22px 8px !important; }
+.instruction-editorial > article { padding:8px 28px 28px !important; }
+.module-content .instruction-editorial article h2 { font-size:60px !important; line-height:1.12 !important; font-weight:400 !important; margin-bottom:28px !important; }
+.module-content .instruction-editorial article p { font-size:22px !important; line-height:1.55 !important; margin:16px 0 !important; }
+.module-window-fullscreen .instruction-editorial article h2 { font-size:64px !important; }
+.instruction-editorial textarea { background:var(--surface-primary) !important; }
+.instruction-editorial article .instruction-step { display:grid; grid-template-columns:40px minmax(0,1fr); gap:12px; }
+.instruction-step > span:first-child { color:var(--text-secondary); font-size:17px; padding-top:4px; }
+.module-content .instruction-editorial article .instruction-finish { border-top:1px solid var(--border-subtle); padding-top:20px; margin-top:28px !important; font-size:18px !important; }
+@media(max-width:839px) { .board-arrange { display:none; } }
+@media(min-width:601px) and (max-height:800px) {
+  .timer-editorial.timer-material { grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-rows:minmax(230px,1fr) auto auto auto; }
+  .timer-material-dial { grid-column:1 / -1; }
+  .timer-editorial.timer-material .timer-material-time { grid-column:1; grid-row:2; }
+  .timer-editorial.timer-material .timer-material-actions { grid-column:2; grid-row:2; flex-wrap:wrap; gap:4px; }
+  .timer-material-actions > button:first-child { min-width:100px; }
+  .timer-editorial.timer-material .timer-material-presets { grid-column:1 / -1; grid-row:3; }
+  .timer-editorial.timer-material .timer-material-custom { grid-column:1 / -1; grid-row:4; }
+  .timer-editorial.timer-material > [role="alert"] { grid-column:1 / -1; grid-row:5; }
+}
+@media(max-width:600px) {
+  .board-identity { top:17px; left:16px; font-size:18px; }
+  .teacher-board .traffic-badge { top:14px; right:16px; gap:6px; }
+  .teacher-board .traffic-badge strong { font-size:16px; }
+  .teacher-board .traffic-badge svg { width:22px; height:22px; }
+  .module-window .module-header { padding:0 16px !important; }
+  .timer-editorial.timer-material { padding:0 14px 16px; gap:10px; }
+  .timer-editorial.timer-material > .timer-material-dial { width:min(100%,300px) !important; }
+  .module-content .instruction-editorial article h2 { font-size:36px !important; }
+  .module-content .instruction-editorial article p { font-size:20px !important; }
+  .dock .dock-item span { font-size:12px; }
+}

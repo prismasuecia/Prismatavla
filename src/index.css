@@ -19,30 +19,31 @@
   --text-3xl:  64px;
 
   /* === CANVAS (huvudbakgrund) === */
-  --canvas-bg:      #EAE6DF;
-  --canvas-bg-alt:  #E3DED6;
+  --canvas-bg:      #AFBFBA;
+  --canvas-bg-alt:  #A5B7B0;
 
   /* === YTOR === */
-  --surface-primary:   #F5F2EE;
-  --surface-secondary: #EEE9E2;
-  --surface-hover:     #E8E3DB;
-  --surface-active:    #DDD8D0;
+  --surface-primary:   #FAF8F4;
+  --surface-secondary: #EFEEE8;
+  --surface-hover:     #E7ECE9;
+  --surface-active:    #DBE5DF;
 
   /* === BORDERS === */
-  --border-subtle: rgba(60, 50, 40, 0.08);
-  --border-medium: rgba(60, 50, 40, 0.13);
-  --border-strong: rgba(60, 50, 40, 0.22);
+  --border-subtle: rgba(32, 48, 42, 0.12);
+  --border-medium: rgba(32, 48, 42, 0.25);
+  --border-strong: rgba(32, 48, 42, 0.42);
 
   /* === TEXT === */
-  --text-primary:   #2C2520;
-  --text-secondary: #6B5F55;
-  --text-tertiary:  #9E9188;
+  --text-primary:   #202321;
+  --text-secondary: #4D5852;
+  --text-tertiary:  #5E6861;
   --text-on-accent: #FFFFFF;
 
   /* === ACCENT (Prisma grön) === */
-  --accent:       #2D5C45;
-  --accent-light: #3A7358;
-  --accent-muted: rgba(45, 92, 69, 0.12);
+  --accent:       #285A46;
+  --accent-light: #346E57;
+  --accent-muted: #E0EBE3;
+  --support-blue: #42677C;
 
   /* === SEMANTISKA STATUSFÄRGER === */
   --status-tyst:   #4A6E5C;
@@ -50,21 +51,21 @@
   --status-prata:  #7A5040;
 
   /* === TIMER === */
-  --timer-fill:    #B8785A;
-  --timer-track:   rgba(184, 120, 90, 0.15);
+  --timer-fill:    #B66F49;
+  --timer-track:   #D9D8D0;
   --timer-warning: #8A6545;
 
   /* === SKUGGOR === */
   --shadow-sm:   0 1px 3px rgba(40, 30, 20, 0.07), 0 1px 2px rgba(40, 30, 20, 0.05);
   --shadow-md:   0 4px 12px rgba(40, 30, 20, 0.09), 0 2px 4px rgba(40, 30, 20, 0.06);
-  --shadow-lg:   0 8px 24px rgba(40, 30, 20, 0.11), 0 3px 8px rgba(40, 30, 20, 0.07);
+  --shadow-lg:   0 12px 36px rgba(35, 62, 46, 0.10), 0 1px 3px rgba(35, 62, 46, 0.025);
   --shadow-dock: 0 -2px 16px rgba(40, 30, 20, 0.08);
 
   /* === RADIER === */
   --radius-sm:   6px;
-  --radius-md:   12px;
-  --radius-lg:   18px;
-  --radius-xl:   24px;
+  --radius-md:   8px;
+  --radius-lg:   8px;
+  --radius-xl:   4px;
   --radius-full: 9999px;
 
   /* === ÖVERGÅNGAR === */
@@ -102,11 +103,12 @@
   --border-medium:     rgba(255, 255, 255, 0.10);
   --border-strong:     rgba(255, 255, 255, 0.18);
   --text-primary:      #F0EDE8;
-  --text-secondary:    #A09890;
-  --text-tertiary:     #6A625A;
-  --accent:            #4A8A6A;
+  --text-secondary:    #C3CCC5;
+  --text-tertiary:     #AAB6AE;
+  --accent:            #4D916E;
   --accent-light:      #5A9E7A;
   --accent-muted:      rgba(74, 138, 106, 0.15);
+  --support-blue:      #A5C4D4;
   --shadow-sm:         0 1px 3px rgba(0,0,0,0.25);
   --shadow-md:         0 4px 12px rgba(0,0,0,0.30);
   --shadow-lg:         0 8px 24px rgba(0,0,0,0.35);
@@ -118,14 +120,14 @@
 
 /* === LJUST TEMA: KRITA === */
 [data-theme="krita"] {
-  --canvas-bg:         #F2F0EC;
-  --canvas-bg-alt:     #EDEAE5;
-  --surface-primary:   #FAFAF8;
-  --surface-secondary: #F3F1ED;
-  --surface-hover:     #EDEAE5;
+  --canvas-bg:         #EDF0F2;
+  --canvas-bg-alt:     #E2E7EB;
+  --surface-primary:   #FFFFFF;
+  --surface-secondary: #F2F5F6;
+  --surface-hover:     #E8EEF0;
   --border-subtle:     rgba(60, 50, 40, 0.07);
-  --text-primary:      #1A1612;
-  --text-secondary:    #5A5048;
+  --text-primary:      #242E2A;
+  --text-secondary:    #536159;
   --canvas:            var(--canvas-bg);
   --surface:           var(--surface-primary);
   --text:              var(--text-primary);
@@ -154,7 +156,7 @@ body {
   font-size: var(--text-base);
   line-height: 1.5;
   font-weight: 400;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

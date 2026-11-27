@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useBoardStore, getActiveStudents } from '../../store/useBoardStore'
+import { distinctStudentNames } from '../../utils/students'
 
 interface SavedClass {
   names: string[]
@@ -49,9 +50,12 @@ const DEFAULT_WHEEL_STATE: PersistedWheelState = {
   excludeDrawn: true,
 }
 
-export function TurnWindow() {
+import { useSharedClasses, activateSharedClass } from '../../hooks/useSharedClasses'
+
+export function TurnWindow({ initialMode = 'wheel' }: { initialMode?: 'wheel' | 'quick' }) {
+  const [mode, setMode] = useState<'wheel' | 'quick'>(initialMode)
   const classLists = useBoardStore((state) => state.classLists)
-  const activeStudents = useMemo(() => getActiveStudents({ classLists }), [classLists])
+  const activeStudents = useMemo(() => distinctStudentNames(getActiveStudents({ classLists })), [classLists])
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const stageRef = useRef<HTMLDivElement>(null)
   const animationRef = useRef<number | null>(null)
@@ -63,20 +67,32 @@ export function TurnWindow() {
     return keys[0] ?? ''
   }, [persistedClasses])
   const [namesInput, setNamesInput] = useState('')
-  const [names, setNames] = useState<string[]>(persistedState.names)
+  const [names, setNames] = useState<string[]>(activeStudents)
   const [drawnNames, setDrawnNames] = useState<string[]>(persistedState.drawnNames)
   const [history, setHistory] = useState<string[]>(persistedState.history)
-  const [excludeDrawn, setExcludeDrawn] = useState(persistedState.excludeDrawn)
-  const [classes, setClasses] = useState<Record<string, SavedClass>>(persistedClasses)
+  const [excludeDrawn, setExcludeDrawn] = useState(true)
+  const switchDrag = useRef({ x: 0, dragged: false })
+  const [classes, setClasses] = useSharedClasses<SavedClass>(persistedClasses, { names: [], savedAt: 0 })
   const [selectedClass, setSelectedClass] = useState(initialClassSelection)
   const [className, setClassName] = useState('')
   const [rotation, setRotation] = useState(persistedState.rotation)
   const [wheelNames, setWheelNames] = useState<string[]>(persistedState.wheelNames)
   const [isSpinning, setIsSpinning] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
+  const classKey = JSON.stringify([classLists.activeId, activeStudents])
+  const previousClassKey = useRef(classKey)
+  useEffect(() => {
+    if (previousClassKey.current === classKey) return
+    previousClassKey.current = classKey
+    setNames(activeStudents)
+    setDrawnNames([])
+    setHistory([])
+    setWheelNames([])
+    setRotation(0)
+  }, [classKey, activeStudents])
   const updateNames = (updater: string[] | ((prev: string[]) => string[])) => {
     setNames((prev) => {
-      const next = typeof updater === 'function' ? (updater as (prevNames: string[]) => string[])(prev) : updater
+      const next = distinctStudentNames(typeof updater === 'function' ? (updater as (prevNames: string[]) => string[])(prev) : updater)
       setDrawnNames((prevDrawn) => prevDrawn.filter((name) => next.includes(name)))
       setHistory((prevHistory) => prevHistory.filter((name) => next.includes(name)))
       setWheelNames([])
@@ -143,11 +159,11 @@ export function TurnWindow() {
     if (!node) {
       return
     }
-    const updateSize = (width: number) => {
-      const size = Math.max(260, Math.min(width - 24, 520))
+    const updateSize = () => {
+      const size = Math.max(1, Math.min(node.clientWidth - 24, node.clientHeight - 16, 520))
       setCanvasSize(size)
     }
-    updateSize(node.clientWidth)
+    updateSize()
 
     const supportsResizeObserver = typeof window !== 'undefined' && 'ResizeObserver' in window
     if (supportsResizeObserver) {
@@ -155,14 +171,14 @@ export function TurnWindow() {
         if (!entries.length) {
           return
         }
-        updateSize(entries[0].contentRect.width)
+        updateSize()
       })
       observer.observe(node)
       return () => observer.disconnect()
     }
 
     if (typeof window !== 'undefined') {
-      const handler = () => updateSize(node.clientWidth)
+      const handler = () => updateSize()
       window.addEventListener('resize', handler)
       return () => window.removeEventListener('resize', handler)
     }
@@ -190,28 +206,9 @@ export function TurnWindow() {
       setStatusMessage('Lägg till minst ett namn.')
       return
     }
-    let added = 0
-    let duplicates = 0
-    updateNames((prev) => {
-      const next = [...prev]
-      parsed.forEach((name) => {
-        if (next.includes(name)) {
-          duplicates += 1
-          return
-        }
-        next.push(name)
-        added += 1
-      })
-      return next
-    })
+    updateNames((prev) => [...prev, ...parsed])
     setNamesInput('')
-    if (added) {
-      setStatusMessage(
-        duplicates ? `${added} namn tillagda. ${duplicates} fanns redan.` : `${added} namn tillagda.`,
-      )
-    } else {
-      setStatusMessage('Alla namn fanns redan i listan.')
-    }
+    setStatusMessage(`${parsed.length} namn tillagda. Lika namn får ett eget nummer.`)
   }
 
   const handleSpin = () => {
@@ -236,6 +233,14 @@ export function TurnWindow() {
     const winnerIndex = Math.floor(Math.random() * spinPool.length)
     const winner = spinPool[winnerIndex]
     const finalRotation = getRotationForIndex(winnerIndex, spinPool.length)
+    if (mode === 'quick') {
+      setRotation(finalRotation)
+      setHistory((prev) => [winner, ...prev].slice(0, MAX_HISTORY))
+      setDrawnNames((prev) => prev.includes(winner) ? prev : [winner, ...prev])
+      setStatusMessage(`Drog ${winner}.`)
+      setIsSpinning(false)
+      return
+    }
     const spins = 5 + Math.floor(Math.random() * 4)
     const startRotation = rotation
     const rotationDelta = getPositiveRotationDelta(startRotation, finalRotation)
@@ -268,10 +273,6 @@ export function TurnWindow() {
     animationRef.current = requestAnimationFrame(step)
   }
 
-  const handleRemoveName = (name: string) => {
-    updateNames((prev) => prev.filter((item) => item !== name))
-    setStatusMessage(`Tog bort ${name}.`)
-  }
 
   const handleResetWheel = () => {
     if (!names.length) {
@@ -283,7 +284,12 @@ export function TurnWindow() {
         return
       }
     }
-    updateNames([])
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+    setIsSpinning(false)
+    setNames([])
     setDrawnNames([])
     setHistory([])
     setWheelNames([])
@@ -292,6 +298,11 @@ export function TurnWindow() {
   }
 
   const handleClearDrawn = () => {
+    if (animationRef.current !== null) {
+      cancelAnimationFrame(animationRef.current)
+      animationRef.current = null
+    }
+    setIsSpinning(false)
     if (!drawnNames.length) {
       return
     }
@@ -306,7 +317,7 @@ export function TurnWindow() {
       setStatusMessage('Ingen aktiv klasslista att hämta.')
       return
     }
-    const next = Array.from(new Set(activeStudents.map((name) => name.trim()).filter(Boolean)))
+    const next = distinctStudentNames(activeStudents.map((name) => name.trim()).filter(Boolean))
     if (!next.length) {
       setStatusMessage('Klasslistan saknar namn att hämta.')
       return
@@ -334,6 +345,7 @@ export function TurnWindow() {
       [key]: { names: [...names], savedAt: Date.now() },
     }))
     setSelectedClass(key)
+    activateSharedClass(key)
     setClassName('')
     setStatusMessage(`Sparade ${key}.`)
   }
@@ -349,6 +361,7 @@ export function TurnWindow() {
       return
     }
     updateNames(payload.names)
+    activateSharedClass(selectedClass)
     setDrawnNames([])
     setHistory([])
     setWheelNames([])
@@ -356,60 +369,7 @@ export function TurnWindow() {
     setStatusMessage(`Laddade ${selectedClass}.`)
   }
 
-  const handleCopyClass = async () => {
-    if (!selectedClass) {
-      setStatusMessage('Välj en klasslista att kopiera.')
-      return
-    }
-    const payload = classes[selectedClass]
-    if (!payload) {
-      setStatusMessage('Klasslistan hittades inte.')
-      return
-    }
-    const text = payload.names.join('\n')
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text)
-      } else {
-        const textarea = document.createElement('textarea')
-        textarea.value = text
-        textarea.style.position = 'fixed'
-        textarea.style.opacity = '0'
-        document.body.appendChild(textarea)
-        textarea.select()
-        document.execCommand('copy')
-        document.body.removeChild(textarea)
-      }
-      setStatusMessage(`Kopierade ${payload.names.length} namn från ${selectedClass}.`)
-    } catch (error) {
-      console.warn('Clipboard error', error)
-      setStatusMessage('Kunde inte kopiera namnlistan.')
-    }
-  }
 
-  const handleDuplicateClass = () => {
-    if (!selectedClass) {
-      setStatusMessage('Välj en klasslista att duplicera.')
-      return
-    }
-    const payload = classes[selectedClass]
-    if (!payload) {
-      setStatusMessage('Klasslistan hittades inte.')
-      return
-    }
-    let nextName = `${selectedClass} (kopia)`
-    let counter = 1
-    while (classes[nextName]) {
-      counter += 1
-      nextName = `${selectedClass} (kopia ${counter})`
-    }
-    setClasses((prev) => ({
-      ...prev,
-      [nextName]: { names: [...payload.names], savedAt: Date.now() },
-    }))
-    setSelectedClass(nextName)
-    setStatusMessage(`Duplicerade ${selectedClass}.`)
-  }
 
   const handleDeleteClass = () => {
     if (!selectedClass) {
@@ -434,15 +394,18 @@ export function TurnWindow() {
 
 
   // Beräkna storlek för PERFEKT cirkel
-  const wheelDiameter = Math.min(canvasSize, 200)
 
 
   return (
-    <div style={{ display:'flex', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
+    <div className="turn-module" style={{ display:'flex', height:'100%', minHeight:0, fontFamily:'var(--font-sans)', overflow:'hidden' }}>
 
       {/* === VÄNSTER: Hjul === */}
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden', minWidth:0 }}>
 
+        <div role="group" aria-label="Välj dragningssätt" style={{ display:'flex', gap:8, padding:'12px 16px', flexShrink:0, order:-2 }}>
+          {([['wheel', 'Snurrhjul'], ['quick', 'Snabbval']] as const).map(([value, label]) => <button key={value} type="button" aria-pressed={mode === value} disabled={isSpinning}
+            onClick={() => setMode(value)} style={{ padding:'8px 14px', borderRadius:6, border:'1px solid var(--border-medium)', background:mode === value?'var(--accent)':'var(--surface-primary)', color:mode === value?'#fff':'var(--text-primary)', cursor:'pointer' }}>{label}</button>)}
+        </div>
         {/* Header */}
         <div style={{ padding:'12px 16px 8px', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, borderBottom:'1px solid var(--border-subtle)' }}>
           <div style={{ display:'flex', alignItems:'baseline', gap:6 }}>
@@ -452,12 +415,12 @@ export function TurnWindow() {
           </div>
           <div style={{ display:'flex', gap:6 }}>
             {drawnNames.length > 0 && (
-              <button type="button" onClick={handleResetWheel}
+              <button type="button" onClick={handleClearDrawn}
                 style={{ padding:'4px 12px', borderRadius:20, border:'1px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                 Återställ
               </button>
             )}
-            <button type="button" onClick={handleClearDrawn}
+            <button type="button" onClick={handleResetWheel}
               style={{ padding:'4px 12px', borderRadius:20, border:'1px solid rgba(180,60,50,0.3)', background:'transparent', fontSize:12, color:'#B43C32', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
               Töm
             </button>
@@ -465,7 +428,7 @@ export function TurnWindow() {
         </div>
 
         {/* Hjul — centrerat med fast storlek */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', padding:'8px 0' }}>
+        <div ref={stageRef} style={{ flex:1, minHeight:0, display:mode === 'wheel'?'flex':'none', flexDirection:'column', alignItems:'center', justifyContent:'center', overflow:'hidden', padding:'8px 0' }}>
           {names.length === 0 ? (
             <div style={{ textAlign:'center', padding:24 }}>
               <div style={{ fontSize:48, opacity:0.1 }}>◎</div>
@@ -485,39 +448,56 @@ export function TurnWindow() {
             {lastDrawn ? (
               <>
                 <div style={{ fontSize:10, fontWeight:600, color:'var(--text-tertiary)', textTransform:'uppercase', letterSpacing:'0.1em' }}>Vald</div>
-                <div style={{ fontSize:24, fontWeight:700, color:'var(--accent)', letterSpacing:'-0.02em' }}>{lastDrawn}</div>
+                <div style={{ fontSize:mode === 'quick'?48:24, fontWeight:700, color:'var(--accent)', overflowWrap:'anywhere', letterSpacing:0 }}>{lastDrawn}</div>
               </>
             ) : (
-              <div style={{ fontSize:12, color:'var(--text-tertiary)', paddingTop:14 }}>Tryck Snurra för att dra ett namn</div>
+              <div style={{ fontSize:12, color:'var(--text-tertiary)', paddingTop:14 }}>{mode === 'quick' ? 'Välj ett namn' : 'Tryck Snurra för att dra ett namn'}</div>
             )}
           </div>
         )}
 
         {/* Snurra-knapp — alltid synlig */}
-        {names.length > 0 && (
-          <div style={{ padding:'8px 16px', flexShrink:0, display:'flex', justifyContent:'center' }}>
-            <button type="button" onClick={handleSpin} disabled={isSpinning}
+        {(
+          <div style={{ padding:'12px 16px', flexShrink:0, display:'flex', justifyContent:'center', order:-1 }}>
+            <button type="button" onClick={handleSpin} disabled={isSpinning || names.length === 0}
               style={{ padding:'10px 40px', borderRadius:24, border:'none', background:isSpinning?'var(--surface-secondary)':'var(--accent)', color:isSpinning?'var(--text-tertiary)':'#fff', fontSize:15, fontWeight:600, cursor:isSpinning?'default':'pointer', fontFamily:'var(--font-sans)', transition:'all 150ms', letterSpacing:'-0.01em' }}>
-              {isSpinning ? 'Snurrar…' : 'Snurra'}
+              {isSpinning ? 'Snurrar…' : mode === 'quick' ? 'Välj namn' : 'Snurra'}
             </button>
           </div>
         )}
 
         {/* Toggle + status */}
         <div style={{ padding:'8px 16px 12px', borderTop:'1px solid var(--border-subtle)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }}
-            onClick={() => setExcludeDrawn(v => !v)}>
-            <div style={{ width:36, height:20, borderRadius:10, background:excludeDrawn?'var(--accent)':'var(--border-medium)', position:'relative', transition:'background 220ms', flexShrink:0 }}>
-              <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:'#fff', top:2, left:excludeDrawn?18:2, transition:'left 220ms', boxShadow:'0 1px 4px rgba(0,0,0,0.18)' }} />
+          <button type="button" role="switch" aria-checked={excludeDrawn}
+            aria-label="Exkludera dragna"
+            onClick={() => {
+              if (!switchDrag.current.dragged) setExcludeDrawn((value) => !value)
+              switchDrag.current.dragged = false
+            }}
+            onPointerDown={(event) => {
+              event.stopPropagation()
+              switchDrag.current = { x: event.clientX, dragged: false }
+              event.currentTarget.setPointerCapture(event.pointerId)
+            }}
+            onPointerUp={(event) => {
+              const delta = event.clientX - switchDrag.current.x
+              if (Math.abs(delta) > 8) {
+                switchDrag.current.dragged = true
+                setExcludeDrawn(delta > 0)
+              }
+            }}
+            style={{ display:'flex', alignItems:'center', gap:8, background:excludeDrawn?'var(--accent)':'#456b83', color:'#fff', border:'1px solid transparent', cursor:'pointer', touchAction:'none', fontFamily:'var(--font-sans)', borderRadius:8, padding:'8px 12px' }}>
+            <div style={{ width:36, height:20, borderRadius:10, background:'#fff', position:'relative', transition:'background 220ms', flexShrink:0 }}>
+              <div style={{ position:'absolute', width:16, height:16, borderRadius:'50%', background:excludeDrawn?'var(--accent)':'#456b83', top:2, left:excludeDrawn?18:2, transition:'left 220ms', boxShadow:'0 1px 4px rgba(0,0,0,0.18)' }} />
             </div>
-            <span style={{ fontSize:12, color:'var(--text-secondary)', userSelect:'none' }}>Exkludera dragna</span>
-          </div>
+            <span style={{ fontSize:12, color:'inherit', fontWeight:600, userSelect:'none' }}>Exkludera dragna · {excludeDrawn ? 'På' : 'Av'}</span>
+          </button>
           {statusMessage && <span style={{ fontSize:11, color:'var(--accent)', fontWeight:500 }}>{statusMessage}</span>}
         </div>
       </div>
 
       {/* === HÖGER: Panel === */}
-      <div style={{ width:204, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflow:'hidden', flexShrink:0 }}>
+      <div className="turn-side-panel" style={{ width:204, borderLeft:'1px solid var(--border-subtle)', display:'flex', flexDirection:'column', overflowY:'auto', minHeight:0, flexShrink:0, scrollbarGutter:'stable', paddingBottom:40 }}>
 
         {/* Lägg till */}
         <div style={{ padding:'14px 14px 12px', borderBottom:'1px solid var(--border-subtle)' }}>
@@ -569,7 +549,7 @@ export function TurnWindow() {
 
         {/* Namn på hjulet */}
         {names.length > 0 && (
-          <div style={{ flex:1, overflow:'auto', padding:'12px 14px' }}>
+          <div style={{ flexShrink:0, padding:'12px 14px' }}>
             <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:8 }}>På hjulet</div>
             {names.map((name, i) => {
               const drawn = drawnNames.includes(name);
@@ -602,7 +582,7 @@ function getSelectedIndex(names: string[], rotation: number) {
   const sliceAngle = TAU / names.length
   const pointerAngle = -Math.PI / 2
   const normalizedRotation = normalizeAngle(rotation)
-  const relativeAngle = (pointerAngle - normalizedRotation + TAU) % TAU
+  const relativeAngle = normalizeAngle(pointerAngle - normalizedRotation)
   return Math.floor(relativeAngle / sliceAngle) % names.length
 }
 
@@ -826,9 +806,6 @@ function drawPointer(context: CanvasRenderingContext2D, center: number, size: nu
   context.restore()
 }
 
-function formatTimestamp(value: number) {
-  return new Date(value).toLocaleString('sv-SE', { dateStyle: 'short', timeStyle: 'short' })
-}
 
 function loadWheelState(): PersistedWheelState {
   if (typeof window === 'undefined') {
@@ -840,7 +817,7 @@ function loadWheelState(): PersistedWheelState {
       return DEFAULT_WHEEL_STATE
     }
     const parsed = JSON.parse(stored)
-    const names = Array.isArray(parsed?.names) ? parsed.names : []
+    const names: string[] = Array.isArray(parsed?.names) ? parsed.names : []
     const drawnNames = Array.isArray(parsed?.drawnNames) ? parsed.drawnNames : []
     const history = Array.isArray(parsed?.history) ? parsed.history : []
     const storedWheelNames = Array.isArray(parsed?.wheelNames) ? parsed.wheelNames : []

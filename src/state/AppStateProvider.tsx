@@ -80,7 +80,6 @@ export interface GroupState {
 
 export interface UIState {
   theme: ThemeId
-  projectorMode: boolean
   activeStage: StageId
 }
 
@@ -111,7 +110,6 @@ export interface AppActions {
   ui: {
     setTheme: (theme: ThemeId) => void
     setStage: (stage: StageId) => void
-    toggleProjector: () => void
   }
   timer: {
     setDuration: (seconds: number, label?: string, autoStart?: boolean) => void
@@ -240,7 +238,6 @@ function createDefaultState(): AppState {
     },
     ui: {
       theme: 'aurora',
-      projectorMode: false,
       activeStage: 'timer',
     },
   }
@@ -349,8 +346,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       return
     }
     document.documentElement.dataset.theme = state.ui.theme
-    document.documentElement.dataset.projector = state.ui.projectorMode ? 'on' : 'off'
-  }, [state.ui.theme, state.ui.projectorMode])
+  }, [state.ui.theme])
 
   const actions = useMemo<AppActions>(() => ({
     ui: {
@@ -359,9 +355,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }),
       setStage: (stage) => updateState((draft) => {
         draft.ui.activeStage = stage
-      }),
-      toggleProjector: () => updateState((draft) => {
-        draft.ui.projectorMode = !draft.ui.projectorMode
       }),
     },
     timer: {

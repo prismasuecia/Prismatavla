@@ -1,34 +1,38 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useBoardStore } from '../../store/useBoardStore'
 
 const PRESETS = [1, 3, 5, 10, 15, 20, 30]
-const RADIUS = 88
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS
+const RADIUS = 70
 
 export function TimerWindow() {
   const timer = useBoardStore((state) => state.timer)
   const actions = useBoardStore((state) => state.actions)
+  const fullscreen = useBoardStore((state) => Boolean(state.moduleWindows.windowsById.timer?.fullscreen))
   const [customMinutes, setCustomMinutes] = useState(8)
+  const [timeError, setTimeError] = useState('')
 
-  const ring = useMemo(() => {
-    const ratio = timer.durationMs === 0 ? 0 : timer.remainingMs / timer.durationMs
-    return {
-      dashOffset: CIRCUMFERENCE * (1 - ratio),
-      isWarning: timer.remainingMs <= 60000 && timer.remainingMs > 0 && timer.isRunning,
-    }
-  }, [timer.durationMs, timer.remainingMs, timer.isRunning])
+  const scaleMinutes = Math.max(60, Math.ceil(timer.durationMs / 3600000) * 60)
+  const ratio = Math.max(0, Math.min(1, timer.remainingMs / (scaleMinutes * 60000)))
+  const angle = ratio * Math.PI * 2
+  const endX = 100 - RADIUS * Math.sin(angle)
+  const endY = 100 - RADIUS * Math.cos(angle)
+  const sector = `M 100 100 L 100 ${100 - RADIUS} A ${RADIUS} ${RADIUS} 0 ${ratio > 0.5 ? 1 : 0} 0 ${endX} ${endY} Z`
 
-  const minutesLeft = Math.floor(timer.remainingMs / 60000)
-  const secondsLeft = Math.floor((timer.remainingMs % 60000) / 1000)
+  const minutesLeft = Math.ceil(timer.remainingMs / 60000)
   const formattedTime = timer.remainingMs > 0
-    ? `${minutesLeft.toString().padStart(2, '0')}:${secondsLeft.toString().padStart(2, '0')}`
-    : '--:--'
+    ? `${minutesLeft} min`
+    : 'Klart'
 
   const statusText = timer.isRunning
-    ? (ring.isWarning ? 'Snart klart' : 'Pågår')
+    ? 'Pågår'
     : timer.remainingMs > 0 ? 'Pausad' : 'Redo'
 
   const applyPreset = (minutes: number) => {
+    if (!Number.isFinite(minutes) || minutes < 1 || minutes > 180) {
+      setTimeError('Ange en tid mellan 1 och 180 minuter.')
+      return
+    }
+    setTimeError('')
     actions.setTimerDuration(minutes * 60)
   }
 
@@ -71,31 +75,36 @@ export function TimerWindow() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px 16px 16px', gap: 16 }}>
+    <div className="timer-editorial timer-material">
 
-      {/* SVG Ring */}
-      <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {/* The fixed scale keeps equal durations visually comparable. */}
+      <div className="timer-material-dial">
         <svg viewBox="0 0 200 200" width={200} height={200}
-          style={{ transform: 'rotate(-90deg)' }} role="presentation">
-          <circle cx={100} cy={100} r={RADIUS} fill="none"
-            stroke="var(--timer-track)" strokeWidth={14} />
-          <circle cx={100} cy={100} r={RADIUS} fill="none"
-            stroke={ring.isWarning ? 'var(--timer-warning)' : 'var(--timer-fill)'}
-            strokeWidth={ring.isWarning ? 18 : 14}
-            strokeLinecap="round"
-            strokeDasharray={CIRCUMFERENCE}
-            strokeDashoffset={ring.dashOffset}
-            style={{ transition: 'stroke-dashoffset 1000ms linear, stroke-width 300ms ease, stroke 300ms ease' }}
-          />
+          style={{ width: '100%', height: '100%', overflow: 'visible' }} role="img" aria-label={`${formattedTime} kvar, skala ${scaleMinutes} minuter`}>
+          <circle cx={100} cy={100} r={98} fill="var(--surface-primary)" stroke="var(--border-medium)" strokeWidth={1} />
+          <circle cx={100} cy={100} r={RADIUS} fill="var(--timer-track)" opacity={0.35} />
+          {ratio >= 1 ? <circle cx={100} cy={100} r={RADIUS} fill="#b65f52" /> : ratio > 0 ? <path d={sector} fill="#b65f52" /> : null}
+          {Array.from({ length: 60 }, (_, i) => {
+            const a = -i * Math.PI / 30
+            const major = i % 5 === 0
+            const inner = major ? 71 : 74
+            return <line key={i} x1={100 + inner * Math.sin(a)} y1={100 - inner * Math.cos(a)} x2={100 + 79 * Math.sin(a)} y2={100 - 79 * Math.cos(a)} stroke="var(--text-secondary)" strokeWidth={major ? 1.5 : 0.65} />
+          })}
+          {Array.from({ length: 12 }, (_, i) => {
+            const a = -i * Math.PI / 6
+            return <text key={i} x={100 + 88 * Math.sin(a)} y={100 - 88 * Math.cos(a)} textAnchor="middle" dominantBaseline="central" fill="var(--text-primary)" fontFamily="var(--font-sans)" fontWeight={600} fontSize={10}>{i * scaleMinutes / 12}</text>
+          })}
+          <circle cx={100} cy={100} r={4} fill="var(--text-primary)" />
         </svg>
-        <div style={{ position: 'absolute', textAlign: 'center', pointerEvents: 'none' }}>
+      </div>
+        <div className="timer-material-time" style={{ textAlign: 'center' }}>
           <span style={{
             display: 'block',
             fontFamily: 'var(--font-mono)',
-            fontSize: 30,
+            fontSize: fullscreen ? 44 : 30,
             fontWeight: 400,
             color: 'var(--text-primary)',
-            letterSpacing: '-0.02em',
+            letterSpacing: 0,
             lineHeight: 1,
           }}>
             {formattedTime}
@@ -103,20 +112,20 @@ export function TimerWindow() {
           <span style={{
             display: 'block',
             fontSize: 'var(--text-sm)',
-            color: 'var(--text-tertiary)',
+            color: 'var(--text-secondary)',
             marginTop: 6,
             fontFamily: 'var(--font-sans)',
           }}>
             {statusText}
           </span>
         </div>
-      </div>
 
       {/* Preset-knappar */}
-      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <div className="timer-material-presets" role="group" aria-label="Förinställda tider">
         {PRESETS.map(min => (
           <button key={min} type="button"
             onClick={() => applyPreset(min)}
+            aria-pressed={currentPresetMinutes === min}
             style={presetBtn(currentPresetMinutes === min)}>
             {min} min
           </button>
@@ -124,7 +133,7 @@ export function TimerWindow() {
       </div>
 
       {/* Kontrollknappar */}
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div className="timer-material-actions">
         {!timer.isRunning ? (
           <button type="button" onClick={() => actions.startTimer()}
             disabled={timer.remainingMs === 0}
@@ -141,18 +150,19 @@ export function TimerWindow() {
         </button>
       </div>
 
+      {timeError && <div role="alert">{timeError}</div>}
       {/* Egen tid */}
-      <div style={{
+      <div className="timer-material-custom" style={{
         display: 'flex', alignItems: 'center', gap: 8,
         padding: '10px 14px',
         background: 'var(--surface-secondary)',
         borderRadius: 'var(--radius-md)',
         width: '100%',
       }}>
-        <label style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap' }}>
+        <label htmlFor="timer-custom-minutes" style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap' }}>
           Egna minuter
         </label>
-        <input type="number" min={1} max={180} value={customMinutes}
+        <input id="timer-custom-minutes" type="number" min={1} max={180} value={customMinutes}
           onChange={(e) => setCustomMinutes(Number(e.target.value))}
           style={{
             flex: 1, minWidth: 0,

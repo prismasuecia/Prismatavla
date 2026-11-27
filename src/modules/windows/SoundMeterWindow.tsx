@@ -1,9 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useBoardStore } from '../../store/useBoardStore'
 
+function computeRms(buffer: Uint8Array): number {
+  if (!buffer.length) return 0
+  let sum = 0
+  for (const sample of buffer) {
+    const amplitude = (sample - 128) / 128
+    sum += amplitude * amplitude
+  }
+  return Math.sqrt(sum / buffer.length)
+}
+
 export function SoundMeterWindow() {
   const soundMeter = useBoardStore((state) => state.soundMeter)
-  const trafficNorm = useBoardStore((state) => state.traffic)
   const actions = useBoardStore((state) => state.actions)
   const [liveLevel, setLiveLevel] = useState(0)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -30,7 +39,6 @@ export function SoundMeterWindow() {
   }
 
   const level = soundMeter?.level ?? 0
-  const peakLevel = soundMeter?.peakLevel ?? 0
   const status = soundMeter?.status ?? 'idle'
   const statusMessage = soundMeter?.message ?? null
 
@@ -53,6 +61,13 @@ export function SoundMeterWindow() {
           return
         }
         const audioContext = new AudioContext()
+        audioContextRef.current = audioContext
+        mediaStreamRef.current = stream
+        await audioContext.resume()
+        if (cancelled) {
+          cleanup()
+          return
+        }
         const analyser = audioContext.createAnalyser()
         analyser.fftSize = 512
         const source = audioContext.createMediaStreamSource(stream)
@@ -64,6 +79,7 @@ export function SoundMeterWindow() {
         actions.setSoundMeterStatus('listening')
         loop()
       } catch (micError) {
+        cleanup()
         console.error('Sound meter mic error', micError)
         actions.setSoundMeterStatus('denied', 'Ingen mikrofonÃ¥tkomst â ge tillstÃ¥nd och fÃ¶rsÃ¶k igen.')
       }
@@ -109,13 +125,13 @@ export function SoundMeterWindow() {
   }
 
   const meterLevel = soundMeter?.enabled ? liveLevel : level
-  const demand = Math.round(meterLevel * 100)
 
   const recommendation = useMemo(() => {
+    if (!soundMeter?.enabled || status !== 'listening') return null
     if (meterLevel < 0.35) return 'tyst'
     if (meterLevel < 0.65) return 'viska'
     return 'prata'
-  }, [meterLevel])
+  }, [meterLevel, soundMeter?.enabled, status])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', fontFamily: 'var(--font-sans)' }}>

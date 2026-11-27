@@ -17,20 +17,37 @@ const MIN_HEIGHT = 280
 
 export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWindowProps) {
   const actions = useBoardStore((state) => state.actions)
-  const projectorMode = useBoardStore((state) => state.projectorMode)
   const activeModuleId = useBoardStore((state) => state.moduleWindows.activeModuleId)
   const isMobile = useIsMobile()
   const isFullscreen = Boolean(layout.fullscreen)
-  const isLocked = projectorMode || isMobile || (config.supportsFullscreen && isFullscreen)
+  const isLocked = isMobile || (config.supportsFullscreen && isFullscreen)
   const isActive = activeModuleId === layout.moduleId
   const fallbackSize = config.defaultSize ?? { width: MIN_WIDTH, height: MIN_HEIGHT }
   const currentSize = {
     width: layout.size?.width ?? fallbackSize.width,
     height: layout.size?.height ?? fallbackSize.height,
   }
+  const x = layout.position?.x ?? 100
+  const y = layout.position?.y ?? 100
+  const showOverflowHint = config.showOverflowHint !== false
   // Drag state
   const dragRef = useRef<{ px: number; py: number; mx: number; my: number } | null>(null)
   const resizeRef = useRef<{ pw: number; ph: number; mx: number; my: number } | null>(null)
+  const windowRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (layout.minimized || isFullscreen || isMobile) return
+    const frame = requestAnimationFrame(() => {
+      const content = windowRef.current?.querySelector<HTMLElement>('.module-content')
+      if (!content) return
+      const extra = content.scrollHeight - content.clientHeight
+      if (extra > 2) actions.updateModuleSize({
+        moduleId: layout.moduleId,
+        size: { width: currentSize.width, height: currentSize.height + extra + 16 },
+      })
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [layout.minimized, isFullscreen, isMobile])
 
   useEffect(() => {
     return () => {
@@ -232,7 +249,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         onMouseDown={handleBringToFront}
       >
         {header}
-        <div className="module-content">{children}</div>
+        <WindowContent showOverflowHint={showOverflowHint}>{children}</WindowContent>
       </div>
     )
   }
@@ -245,17 +262,15 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
         onMouseDown={handleBringToFront}
       >
         {header}
-        <div className="module-content">{children}</div>
+        <WindowContent showOverflowHint={showOverflowHint}>{children}</WindowContent>
       </div>
     )
   }
 
-  const x = layout.position?.x ?? 100
-  const y = layout.position?.y ?? 100
-
   return (
     <div
       className={clsx('module-window', { 'is-active': isActive, 'is-locked': isLocked })}
+      ref={windowRef}
       style={{
         position: 'absolute',
         left: x,
@@ -269,7 +284,7 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
       onMouseDown={handleBringToFront}
     >
       {header}
-      <div className="module-content">{children}</div>
+      <WindowContent reserveResizeSpace={!isLocked}>{children}</WindowContent>
       {!isLocked && (
         <div
           className="module-resize module-resize-diagonal"
@@ -277,15 +292,70 @@ export function ModuleWindow({ layout, config, children, chipLabel }: ModuleWind
             position: 'absolute',
             right: 0,
             bottom: 0,
-            width: 20,
-            height: 20,
+            width: 52,
+            height: 28,
             cursor: 'nwse-resize',
             touchAction: 'none',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'flex-end',
+            gap: 8,
+            padding: '8px 12px',
+            boxSizing: 'border-box',
+            zIndex: 6,
           }}
           onPointerDown={onResizePointerDown}
-          aria-hidden="true"
-        />
+          aria-label="Dra för att förstora fönstret"
+          role="button"
+          title="Dra för att förstora fönstret"
+          tabIndex={-1}
+        >
+          <span
+            aria-hidden="true"
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 8,
+              background: 'rgba(255, 255, 255, 0.86)',
+              border: '1px solid rgba(45, 92, 69, 0.28)',
+              boxShadow: '0 8px 18px rgba(31, 42, 36, 0.16)',
+              position: 'relative',
+              display: 'block',
+            }}
+          >
+            <span
+              style={{
+                position: 'absolute',
+                right: 5,
+                bottom: 5,
+                width: 10,
+                height: 10,
+                borderRight: '3px solid var(--accent)',
+                borderBottom: '3px solid var(--accent)',
+              }}
+            />
+            <span
+              style={{
+                position: 'absolute',
+                right: 5,
+                bottom: 12,
+                width: 6,
+                height: 6,
+                borderRight: '2px solid rgba(45, 92, 69, 0.58)',
+                borderBottom: '2px solid rgba(45, 92, 69, 0.58)',
+              }}
+            />
+          </span>
+        </div>
       )}
+    </div>
+  )
+}
+
+function WindowContent({ children, reserveResizeSpace = false }: { children: ReactNode; reserveResizeSpace?: boolean; forceMoreHint?: boolean; showOverflowHint?: boolean }) {
+  return (
+    <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, marginBottom: reserveResizeSpace ? 28 : 0, overflow: 'hidden', touchAction: 'pan-y' }}>
+      <div className="module-content">{children}</div>
     </div>
   )
 }

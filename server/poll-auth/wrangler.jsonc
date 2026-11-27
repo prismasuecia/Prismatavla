@@ -1,0 +1,14 @@
+{
+  "name": "prisma-poll-auth",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-11-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "ALLOWED_ORIGINS": "https://prismasuecia.github.io"
+  },
+  "ratelimits": [{
+    "name": "TOKEN_LIMITER",
+    "namespace_id": "1001",
+    "simple": { "limit": 120, "period": 60 }
+  }]
+}

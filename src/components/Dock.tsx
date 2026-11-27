@@ -1,9 +1,10 @@
 import type { ComponentType } from 'react'
 import clsx from 'clsx'
-import { Monitor } from 'lucide-react'
 import { useBoardStore } from '../store/useBoardStore'
 import { MODULE_REGISTRY } from '../modules/moduleRegistry'
 import type { ModuleId } from '../modules/moduleTypes'
+
+const BRAND_ICON = `${import.meta.env.BASE_URL}brand/prisma-app-icon-512.jpg`
 
 interface DockToolBase {
   id: string
@@ -16,71 +17,42 @@ interface DockModuleTool extends DockToolBase {
   module: ModuleId
 }
 
-interface DockToggleTool extends DockToolBase {
-  kind: 'toggle'
-}
-
-type DockTool = DockModuleTool | DockToggleTool
+type DockTool = DockModuleTool
 
 interface DockProps {
   isVisible: boolean
-  onPointerEnter?: () => void
-  onPointerLeave?: () => void
 }
 
 const TOOLS: DockTool[] = [
-  ...MODULE_REGISTRY.map((config) => ({
+  ...MODULE_REGISTRY.filter((config) => config.id !== 'randomizer').map((config) => ({
     id: config.id,
     kind: 'module' as const,
     module: config.id,
     label: config.title,
     icon: config.icon,
   })),
-  { id: 'projector', kind: 'toggle', label: 'Projektor', icon: Monitor },
 ]
 
-export function Dock({ isVisible, onPointerEnter, onPointerLeave }: DockProps) {
-  const projectorMode = useBoardStore((state) => state.projectorMode)
+export function Dock({ isVisible }: DockProps) {
   const moduleWindows = useBoardStore((state) => state.moduleWindows)
   const actions = useBoardStore((state) => state.actions)
   const openModuleIds = new Set(moduleWindows.openModuleIds)
 
   const handleModuleClick = (moduleId: ModuleId) => {
-    if (openModuleIds.has(moduleId)) {
-      actions.closeModule(moduleId)
-    } else {
-      actions.openModule(moduleId)
-    }
+    actions.openModule(moduleId)
   }
 
   return (
     <nav
-      className={clsx('dock', { 'dock-projector': projectorMode })}
+      className={clsx('dock')}
       data-visible={isVisible ? 'true' : 'false'}
       aria-hidden={!isVisible}
-      onMouseEnter={onPointerEnter}
-      onMouseLeave={onPointerLeave}
       aria-label="Verktygsfält"
     >
+      <div className="dock-brand" aria-label="Prisma Tavla">
+        <img src={BRAND_ICON} alt="" aria-hidden="true" />
+      </div>
       {TOOLS.map((tool) => {
-        if (tool.kind === 'toggle') {
-          const Icon = tool.icon
-          return (
-            <button
-              key={tool.id}
-              type="button"
-              className="dock-item"
-              data-active={projectorMode ? 'true' : 'false'}
-              onClick={() => actions.toggleProjector()}
-              aria-pressed={projectorMode}
-              style={{ cursor: 'pointer' }}
-            >
-              <Icon size={22} strokeWidth={1.75} aria-hidden="true" />
-              <span>{tool.label}</span>
-            </button>
-          )
-        }
-
         const Icon = tool.icon
         const isActive = openModuleIds.has(tool.module)
 

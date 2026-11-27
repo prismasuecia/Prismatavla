@@ -35,6 +35,7 @@ export interface ModuleConfig {
   component: ComponentType
   defaultSize: { width: number; height: number }
   supportsFullscreen: boolean
+  showOverflowHint?: boolean
 }
 
 export const MODULE_REGISTRY: ModuleConfig[] = [
@@ -45,13 +46,14 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     component: BackgroundWindow,
     defaultSize: { width: 480, height: 380 },
     supportsFullscreen: false,
+    showOverflowHint: false,
   },
   {
     id: 'timer',
     title: 'Timer',
     icon: TimerReset,
     component: TimerWindow,
-    defaultSize: { width: 400, height: 420 },
+    defaultSize: { width: 560, height: 740 },
     supportsFullscreen: true,
   },
   {
@@ -61,6 +63,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     component: TurnWindow,
     defaultSize: { width: 760, height: 580 },
     supportsFullscreen: true,
+    showOverflowHint: false,
   },
   {
     id: 'groups',
@@ -72,7 +75,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     id: 'instructioncards',
-    title: 'Instruktion',
+    title: 'Nu gör vi',
     icon: NotebookPen,
     component: InstructionWindow,
     defaultSize: { width: 480, height: 520 },
@@ -80,11 +83,12 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     id: 'trafficlight',
-    title: 'Trafikljus',
+    title: 'Samtalsnivå',
     icon: TrafficCone,
     component: TrafficWindow,
-    defaultSize: { width: 380, height: 340 },
-    supportsFullscreen: false,
+    defaultSize: { width: 500, height: 620 },
+    supportsFullscreen: true,
+    showOverflowHint: false,
   },
   {
     id: 'randomizer',
@@ -93,6 +97,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     component: RandomizerWindow,
     defaultSize: { width: 380, height: 360 },
     supportsFullscreen: false,
+    showOverflowHint: false,
   },
   {
     id: 'clock',
@@ -101,6 +106,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     component: ClockWindow,
     defaultSize: { width: 360, height: 320 },
     supportsFullscreen: false,
+    showOverflowHint: false,
   },
   {
     id: 'seating',
@@ -120,10 +126,10 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
   },
   {
     id: 'exitticket',
-    title: 'Exit ticket',
+    title: 'Omröstning',
     icon: Ticket,
     component: ExitTicketWindow,
-    defaultSize: { width: 420, height: 420 },
+    defaultSize: { width: 560, height: 620 },
     supportsFullscreen: true,
   },
   {
@@ -133,6 +139,7 @@ export const MODULE_REGISTRY: ModuleConfig[] = [
     component: SoundMeterWindow,
     defaultSize: { width: 420, height: 360 },
     supportsFullscreen: false,
+    showOverflowHint: false,
   },
 ]
 

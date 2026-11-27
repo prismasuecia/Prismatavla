@@ -9,16 +9,12 @@ const THEMES: { id: ThemeId; title: string; lead: string }[] = [
 
 interface ThemeControlsProps {
   theme: ThemeId
-  projectorMode: boolean
   onThemeChange: (theme: ThemeId) => void
-  onProjectorToggle: () => void
 }
 
 export function ThemeControls({
   theme,
-  projectorMode,
   onThemeChange,
-  onProjectorToggle,
 }: ThemeControlsProps) {
   return (
     <div className="theme-controls">
@@ -37,14 +33,6 @@ export function ThemeControls({
           </button>
         ))}
       </div>
-      <button
-        type="button"
-        className={clsx('projector-toggle', { active: projectorMode })}
-        onClick={onProjectorToggle}
-      >
-        Projektorläge
-        <span className="pill-helper">{projectorMode ? '120% text' : 'Normal'}</span>
-      </button>
     </div>
   )
 }

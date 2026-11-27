@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import html2canvas from 'html2canvas'
 import { jsPDF } from 'jspdf'
 import { useBoardStore, getActiveStudents } from '../../store/useBoardStore'
 import { shuffleList } from '../../utils/array'
@@ -13,6 +12,7 @@ interface GroupResult {
 }
 
 interface GroupSavePayload {
+  groups?: GroupResult[]
   names: string[]
   activeMode: GroupMode
   groupCount: number | null
@@ -35,13 +35,11 @@ const STORAGE_KEYS = {
   last: 'arbetsgrupper:last',
 }
 
-const GROUP_COUNTS = [2, 3, 4, 5, 6, 7, 8, 9, 10]
-const GROUP_SIZES = [2, 3, 4, 5, 6, 7]
+
 
 export function GroupsWindow() {
   const classLists = useBoardStore((state) => state.classLists)
   const activeStudents = useMemo(() => getActiveStudents({ classLists }), [classLists])
-  const resultsRef = useRef<HTMLDivElement>(null)
   const [initialSession] = useState<PersistedPayload>(() => loadLastSession() ?? {})
   const [initialSaves] = useState(() => loadSavedLists())
   const derivedNamesInput =
@@ -50,7 +48,7 @@ export function GroupsWindow() {
 
   const [namesInput, setNamesInput] = useState(derivedNamesInput)
   const [names, setNames] = useState<string[]>(initialSession.names ?? parseNames(derivedNamesInput))
-  const [activeMode, setActiveMode] = useState<GroupMode>(initialSession.activeMode ?? null)
+  const [activeMode, setActiveMode] = useState<GroupMode>(() => normalizeGroupMode(initialSession.activeMode) ?? 'size')
   const [groupCount, setGroupCount] = useState<number | null>(initialSession.groupCount ?? null)
   const [groupSize, setGroupSize] = useState<number | null>(initialSession.groupSize ?? null)
   const [leaders, setLeaders] = useState(Boolean(initialSession.leaders))
@@ -62,30 +60,30 @@ export function GroupsWindow() {
     const keys = Object.keys(initialSaves).sort((a, b) => a.localeCompare(b))
     return keys[0] ?? ''
   })
-  const [hintVisible, setHintVisible] = useState(false)
+  const [, setHintVisible] = useState(false)
   const [statusMessage, setStatusMessage] = useState('')
   const [copyFeedback, setCopyFeedback] = useState('')
+  const activeClassKey = JSON.stringify([classLists.activeId, activeStudents])
+  const previousClassKey = useRef(activeClassKey)
+  useEffect(() => {
+    // Restoring the window must keep the saved result; only class changes reset it.
+    if (previousClassKey.current === activeClassKey) return
+    previousClassKey.current = activeClassKey
+    setNamesInput(activeStudents.join('\n'))
+    setNames(activeStudents)
+    setGroups([])
+    setActiveStep('names')
+  }, [activeClassKey, activeStudents])
 
   const participantCount = useMemo(() => parseNames(namesInput).length, [namesInput])
-  const saveOptions = useMemo(() => Object.keys(saves).sort((a, b) => a.localeCompare(b)), [saves])
+  const maxGroupCount = getMaxGroupCount(participantCount)
+  const maxGroupSize = getMaxGroupSize(participantCount)
+  const resolvedGroupCount = clampNumber(groupCount, 2, maxGroupCount, Math.min(4, maxGroupCount))
+  const resolvedGroupSize = clampNumber(groupSize, 2, maxGroupSize, Math.min(4, maxGroupSize))
   const configurationReady =
     participantCount >= 2 &&
     !!activeMode &&
-    ((activeMode === 'groups' && groupCount) || (activeMode === 'size' && groupSize))
-  const setupHelper = (() => {
-    if (activeMode === 'groups') {
-      return groupCount ? `${groupCount} grupper` : 'Välj antal grupper'
-    }
-    if (activeMode === 'size') {
-      return groupSize ? `${groupSize} per grupp` : 'Välj gruppstorlek'
-    }
-    return 'Välj strategi'
-  })()
-  const stepMeta: { id: StepId; label: string; helper: string }[] = [
-    { id: 'names', label: 'Namn', helper: participantCount ? `${participantCount} elever` : 'Lägg till namn' },
-    { id: 'setup', label: 'Strategi', helper: setupHelper },
-    { id: 'results', label: 'Resultat', helper: groups.length ? `${groups.length} grupper` : 'Skapa grupper' },
-  ]
+    ((activeMode === 'groups' && resolvedGroupCount) || (activeMode === 'size' && resolvedGroupSize))
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -133,8 +131,10 @@ export function GroupsWindow() {
     setStatusMessage('')
     if (mode === 'groups') {
       setGroupSize(null)
+      setGroupCount((prev) => clampNumber(prev, 2, maxGroupCount, Math.min(4, maxGroupCount)))
     } else if (mode === 'size') {
       setGroupCount(null)
+      setGroupSize((prev) => clampNumber(prev, 2, maxGroupSize, Math.min(4, maxGroupSize)))
     }
   }
 
@@ -150,18 +150,30 @@ export function GroupsWindow() {
       setStatusMessage('Välj ett läge: antal grupper eller gruppstorlek.')
       return
     }
-    if (activeMode === 'groups' && !groupCount) {
+    const parsedMaxGroupCount = getMaxGroupCount(parsed.length)
+    const parsedMaxGroupSize = getMaxGroupSize(parsed.length)
+    const nextGroupCount =
+      activeMode === 'groups'
+        ? clampNumber(groupCount, 2, parsedMaxGroupCount, Math.min(4, parsedMaxGroupCount))
+        : null
+    const nextGroupSize =
+      activeMode === 'size'
+        ? clampNumber(groupSize, 2, parsedMaxGroupSize, Math.min(4, parsedMaxGroupSize))
+        : null
+    if (activeMode === 'groups' && !nextGroupCount) {
       setStatusMessage('Välj hur många grupper du vill skapa.')
       return
     }
-    if (activeMode === 'size' && !groupSize) {
+    if (activeMode === 'size' && !nextGroupSize) {
       setStatusMessage('Välj vilken storlek grupperna ska ha.')
       return
     }
 
     setHintVisible(false)
     setStatusMessage('')
-    const generated = buildGroups(parsed, activeMode, { groupCount, groupSize }, leaders)
+    setGroupCount(nextGroupCount)
+    setGroupSize(nextGroupSize)
+    const generated = buildGroups(parsed, activeMode, { groupCount: nextGroupCount, groupSize: nextGroupSize }, leaders)
     setGroups(generated)
     setActiveStep('results')
   }
@@ -172,12 +184,14 @@ export function GroupsWindow() {
       setStatusMessage('Lägg till namn innan du blandar.')
       return
     }
-    if (!activeMode || (activeMode === 'groups' && !groupCount) || (activeMode === 'size' && !groupSize)) {
+    const nextGroupCount = activeMode === 'groups' ? resolvedGroupCount : null
+    const nextGroupSize = activeMode === 'size' ? resolvedGroupSize : null
+    if (!activeMode || (activeMode === 'groups' && !nextGroupCount) || (activeMode === 'size' && !nextGroupSize)) {
       setStatusMessage('Komplettera inställningarna innan du blandar.')
       return
     }
     setStatusMessage('')
-    const generated = buildGroups(base, activeMode, { groupCount, groupSize }, leaders)
+    const generated = buildGroups(base, activeMode, { groupCount: nextGroupCount, groupSize: nextGroupSize }, leaders)
     setGroups(generated)
     setActiveStep('results')
   }
@@ -208,6 +222,7 @@ export function GroupsWindow() {
       groupCount,
       groupSize,
       leaders,
+      groups,
     }
     setSaves((prev) => ({ ...prev, [key]: payload }))
     setSelectedSave(key)
@@ -225,12 +240,12 @@ export function GroupsWindow() {
     }
     setNamesInput((payload.names ?? []).join('\n'))
     setNames(payload.names ?? [])
-    setActiveMode(payload.activeMode ?? null)
+    setActiveMode(normalizeGroupMode(payload.activeMode) ?? 'size')
     setGroupCount(payload.groupCount ?? null)
     setGroupSize(payload.groupSize ?? null)
     setLeaders(Boolean(payload.leaders))
-    setGroups([])
-    setActiveStep('names')
+    setGroups(payload.groups ?? [])
+    setActiveStep(payload.groups?.length ? 'results' : 'names')
     setHintVisible(false)
     setStatusMessage(`Laddade ${selectedSave}.`)
   }
@@ -248,36 +263,33 @@ export function GroupsWindow() {
     setStatusMessage('Listan togs bort.')
   }
 
-  const handleExportCSV = () => {
+
+  const handleExportPDF = async () => {
     if (!groups.length) {
       return
     }
-    const csv = groupsToCSV(groups)
-    downloadFile(`grupper-${timestamp()}.csv`, 'text/csv;charset=utf-8', csv)
-  }
-
-  const handleExportPDF = async () => {
-    if (!groups.length || !resultsRef.current) {
-      return
-    }
     try {
-      const canvas = await html2canvas(resultsRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-      })
-      const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const margin = 12
-      const maxWidth = pageWidth - margin * 2
-      const maxHeight = pageHeight - margin * 2
-      const scale = Math.min(maxWidth / canvas.width, maxHeight / canvas.height)
-      const renderWidth = canvas.width * scale
-      const renderHeight = canvas.height * scale
-      const offsetX = (pageWidth - renderWidth) / 2
-      const offsetY = (pageHeight - renderHeight) / 2
-      pdf.addImage(imgData, 'PNG', offsetX, offsetY, renderWidth, renderHeight)
+      let y = 20
+      pdf.setFontSize(18)
+      pdf.text('Arbetsgrupper', 16, y)
+      y += 14
+      for (const [index, group] of groups.entries()) {
+        if (y > 260) { pdf.addPage(); y = 20 }
+        pdf.setFontSize(13)
+        pdf.text(`Grupp ${index + 1}`, 16, y)
+        y += 8
+        pdf.setFontSize(11)
+        for (const name of [...(group.leader ? [group.leader] : []), ...group.members]) {
+          const lines = pdf.splitTextToSize(`${name}${group.leader === name ? ' (gruppledare)' : ''}`, 178) as string[]
+          for (const line of lines) {
+            if (y > 280) { pdf.addPage(); y = 20 }
+            pdf.text(line, 16, y)
+            y += 6
+          }
+        }
+        y += 8
+      }
       pdf.save(`arbetsgrupper-${timestamp()}.pdf`)
       setStatusMessage('PDF sparad.')
     } catch (error) {
@@ -286,235 +298,15 @@ export function GroupsWindow() {
     }
   }
 
-  const renderNamesStep = () => (
-    <div className="groups-editor">
-      <section className="panel-card names-panel">
-        <header>
-          <p className="eyebrow">Deltagare</p>
-          <h3>Klistra in namn (ett per rad)</h3>
-        </header>
-        <textarea
-          value={namesInput}
-          onChange={(event) => {
-            setNamesInput(event.target.value)
-            setHintVisible(false)
-            setStatusMessage('')
-          }}
-          placeholder={'Aino\nBilal\nCarla'}
-        />
-        <div className="names-meta">
-          <span>{participantCount} elever</span>
-          {hintVisible && <span className="hint warning">Minst två namn behövs.</span>}
-        </div>
-        <div className="names-actions">
-          <button type="button" onClick={handleImportClass} className="ghost-btn">
-            Hämta aktiv klasslista
-          </button>
-        </div>
-      </section>
 
-      <section className="panel-card save-panel">
-        <header>
-          <p className="eyebrow">Sparade listor</p>
-          <h3>Återanvänd grupperingar</h3>
-        </header>
-        <div className="save-grid">
-          <div className="save-row">
-            <input
-              type="text"
-              value={saveName}
-              placeholder="Namn på listan"
-              onChange={(event) => setSaveName(event.target.value)}
-            />
-            <button type="button" onClick={handleSave}>
-              Spara
-            </button>
-          </div>
-          <div className="save-row">
-            <select value={selectedSave} onChange={(event) => setSelectedSave(event.target.value)}>
-              <option value="">Välj sparad lista</option>
-              {saveOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-            <button type="button" onClick={handleLoad} disabled={!selectedSave}>
-              Ladda
-            </button>
-            <button type="button" onClick={handleDelete} disabled={!selectedSave}>
-              Ta bort
-            </button>
-          </div>
-        </div>
-      </section>
 
-      <div className="step-footer">
-        <button
-          type="button"
-          className="ghost-btn"
-          onClick={() => setActiveStep('results')}
-          disabled={!groups.length}
-        >
-          Visa resultat
-        </button>
-        <button
-          type="button"
-          className="primary-btn"
-          onClick={() => setActiveStep('setup')}
-          disabled={participantCount < 2}
-        >
-          Nästa: Strategi
-        </button>
-      </div>
-    </div>
-  )
-
-  const renderSetupStep = () => (
-    <div className="setup-step">
-      <section className="panel-card mode-panel">
-        <header>
-          <p className="eyebrow">Strategi</p>
-          <h3>Välj hur grupperna byggs</h3>
-        </header>
-        <div className="mode-grid">
-          <article
-            className="choice-card"
-            data-active={activeMode === 'groups'}
-            onClick={() => handleModeSelect('groups')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                handleModeSelect('groups')
-              }
-            }}
-          >
-            <div>
-              <h4>Antal grupper</h4>
-              <p>Jämn fördelning där du styr hur många lag som behövs.</p>
-            </div>
-            <div className="choice-options">
-              {GROUP_COUNTS.map((count) => (
-                <button
-                  type="button"
-                  key={`count-${count}`}
-                  className={count === groupCount && activeMode === 'groups' ? 'choice-chip active' : 'choice-chip'}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    handleModeSelect('groups')
-                    setGroupCount(count)
-                  }}
-                >
-                  {count}
-                </button>
-              ))}
-            </div>
-          </article>
-          <article
-            className="choice-card"
-            data-active={activeMode === 'size'}
-            onClick={() => handleModeSelect('size')}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault()
-                handleModeSelect('size')
-              }
-            }}
-          >
-            <div>
-              <h4>Gruppstorlek</h4>
-              <p>Automatisk balans där du bara anger hur stora grupperna ska vara.</p>
-            </div>
-            <div className="choice-options">
-              {GROUP_SIZES.map((size) => (
-                <button
-                  type="button"
-                  key={`size-${size}`}
-                  className={size === groupSize && activeMode === 'size' ? 'choice-chip active' : 'choice-chip'}
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    handleModeSelect('size')
-                    setGroupSize(size)
-                  }}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </article>
-          <article className="choice-card" data-active={leaders}>
-            <div>
-              <h4>Gruppledare</h4>
-              <p>Första personen i varje grupp markeras som ansvarig.</p>
-            </div>
-            <button type="button" className={leaders ? 'choice-chip active' : 'choice-chip'} onClick={() => setLeaders((prev) => !prev)}>
-              {leaders ? 'På' : 'Av'}
-            </button>
-          </article>
-        </div>
-      </section>
-      <div className="step-footer">
-        <button type="button" className="ghost-btn" onClick={() => setActiveStep('names')}>
-          Tillbaka
-        </button>
-        <button
-          type="button"
-          className="primary-btn"
-          onClick={() => setActiveStep('results')}
-          disabled={!groups.length}
-        >
-          Gå till resultat
-        </button>
-      </div>
-    </div>
-  )
-
-  const renderResultsStep = () => (
-    <div className="groups-results">
-      <div className="results-header">
-        <div>
-          <p className="eyebrow">Arbetsgrupper</p>
-          <h3>
-            {groups.length} grupper · {names.length || participantCount} elever
-          </h3>
-          <p className="micro-copy">Slumpad uppställning baserad på senaste inmatningen.</p>
-        </div>
-        <button type="button" className="ghost-btn projector-hide" onClick={() => setActiveStep('setup')}>
-          Justera strategi
-        </button>
-      </div>
-      {copyFeedback && <p className="micro-copy">{copyFeedback}</p>}
-      <div className="results-grid" ref={resultsRef}>
-        {groups.length === 0 && <p>Skapa grupper för att visa resultat här.</p>}
-        {groups.map((group, index) => (
-          <article key={`result-${index}`} className="result-card">
-            <header>
-              <span className="eyebrow">Grupp {index + 1}</span>
-              {group.leader && <span className="leader-pill">Ansvarig</span>}
-            </header>
-            <ul>
-              {group.leader && <li className="leader-row">{group.leader}</li>}
-              {group.members.map((member) => (
-                <li key={member}>{member}</li>
-              ))}
-              {!group.leader && group.members.length === 0 && <li>(tom grupp)</li>}
-            </ul>
-          </article>
-        ))}
-      </div>
-    </div>
-  )
 
 
   const stepOrder = ['names', 'setup', 'results'] as const
   const stepLabels: Record<string, string> = { names: 'Namn', setup: 'Strategi', results: 'Resultat' }
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
+    <div className="groups-editorial" style={{ display:'flex', flexDirection:'column', height:'100%', fontFamily:'var(--font-sans)', overflow:'hidden' }}>
 
       {/* Steg-indikator */}
       <div style={{ display:'flex', alignItems:'center', padding:'12px 20px', borderBottom:'1px solid var(--border-subtle)', flexShrink:0 }}>
@@ -549,7 +341,7 @@ export function GroupsWindow() {
                 placeholder="Klistra in namn, ett per rad…" rows={8}
                 style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'1.5px solid var(--border-medium)', background:'var(--surface-secondary)', fontSize:13, color:'var(--text-primary)', fontFamily:'var(--font-sans)', resize:'vertical', outline:'none', boxSizing:'border-box', lineHeight:1.7, display:'block' }} />
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:8 }}>
-                <span style={{ fontSize:12, color:'var(--text-tertiary)' }}>{names.length > 0 ? names.length+' deltagare' : 'Inga namn ännu'}</span>
+                <span style={{ fontSize:12, color:'var(--text-tertiary)' }}>{participantCount > 0 ? participantCount+' deltagare' : 'Inga namn ännu'}</span>
                 <button type="button" onClick={handleImportClass}
                   style={{ padding:'6px 14px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                   Hämta aktiv klass
@@ -583,8 +375,11 @@ export function GroupsWindow() {
               </div>
             </div>
             <div style={{ display:'flex', justifyContent:'flex-end' }}>
-              <button type="button" onClick={() => setActiveStep('setup')} disabled={names.length < 2}
-                style={{ padding:'9px 20px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600, cursor:names.length<2?'default':'pointer', opacity:names.length<2?0.4:1, fontFamily:'var(--font-sans)' }}>
+              <button type="button" onClick={() => {
+                setNames(parseNames(namesInput))
+                setActiveStep('setup')
+              }} disabled={participantCount < 2}
+                style={{ padding:'9px 20px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600, cursor:participantCount<2?'default':'pointer', opacity:participantCount<2?0.4:1, fontFamily:'var(--font-sans)' }}>
                 Nästa: Strategi →
               </button>
             </div>
@@ -596,15 +391,15 @@ export function GroupsWindow() {
           <div style={{ display:'flex', flexDirection:'column', gap:20, maxWidth:420 }}>
             <div>
               <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:12 }}>Hur vill du dela upp?</div>
-              {(['count','size'] as const).map(mode => (
+              {(['groups','size'] as const).map(mode => (
                 <button key={mode} type="button" onClick={() => handleModeSelect(mode)}
                   style={{ width:'100%', padding:'14px 16px', borderRadius:12, border:activeMode===mode?'2px solid var(--accent)':'1.5px solid var(--border-medium)', background:activeMode===mode?'rgba(45,92,69,0.06)':'var(--surface-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)', textAlign:'left', display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
                   <div>
                     <div style={{ fontSize:14, fontWeight:600, color:activeMode===mode?'var(--accent)':'var(--text-primary)' }}>
-                      {mode==='count' ? 'Antal grupper' : 'Storlek per grupp'}
+                      {mode==='groups' ? 'Antal grupper' : 'Storlek per grupp'}
                     </div>
                     <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:2 }}>
-                      {mode==='count' ? 'Dela '+names.length+' elever i X grupper' : 'Varje grupp har X elever'}
+                      {mode==='groups' ? 'Dela '+participantCount+' elever i X grupper' : 'Varje grupp har X elever'}
                     </div>
                   </div>
                   {activeMode===mode && <span style={{ color:'var(--accent)', fontSize:18 }}>✓</span>}
@@ -613,19 +408,19 @@ export function GroupsWindow() {
             </div>
             <div>
               <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', color:'var(--text-tertiary)', marginBottom:10 }}>
-                {activeMode==='count' ? 'Antal grupper' : 'Elever per grupp'}
+                {activeMode==='groups' ? 'Antal grupper' : 'Elever per grupp'}
               </div>
               <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-                <input type="range" min={2} max={Math.max(2, Math.floor(names.length/2))}
-                  value={activeMode==='count'?groupCount:groupSize}
-                  onChange={e => activeMode==='count'?setGroupCount(Number(e.target.value)):setGroupSize(Number(e.target.value))}
+                <input type="range" min={2} max={activeMode==='groups' ? maxGroupCount : maxGroupSize}
+                  value={activeMode==='groups'?resolvedGroupCount:resolvedGroupSize}
+                  onChange={e => activeMode==='groups'?setGroupCount(Number(e.target.value)):setGroupSize(Number(e.target.value))}
                   style={{ flex:1, accentColor:'var(--accent)' }} />
                 <div style={{ fontSize:32, fontWeight:700, color:'var(--accent)', minWidth:40, textAlign:'center' }}>
-                  {activeMode==='count'?groupCount:groupSize}
+                  {activeMode==='groups'?resolvedGroupCount:resolvedGroupSize}
                 </div>
               </div>
               <div style={{ fontSize:12, color:'var(--text-tertiary)', marginTop:4, textAlign:'center' }}>
-                {activeMode==='count' ? 'Ca '+Math.ceil(names.length/groupCount)+' elever per grupp' : 'Ca '+Math.ceil(names.length/groupSize)+' grupper totalt'}
+                {activeMode==='groups' ? 'Ca '+Math.ceil(participantCount/resolvedGroupCount)+' elever per grupp' : 'Ca '+Math.ceil(participantCount/resolvedGroupSize)+' grupper totalt'}
               </div>
             </div>
             <div style={{ display:'flex', alignItems:'center', gap:8, cursor:'pointer' }} onClick={() => setLeaders(v => !v)}>
@@ -639,8 +434,8 @@ export function GroupsWindow() {
                 style={{ padding:'8px 16px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:13, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                 ← Tillbaka
               </button>
-              <button type="button" onClick={handleGenerate}
-                style={{ padding:'9px 24px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:'var(--font-sans)' }}>
+              <button type="button" onClick={handleGenerate} disabled={!configurationReady}
+                style={{ padding:'9px 24px', borderRadius:20, border:'none', background:'var(--accent)', color:'#fff', fontSize:14, fontWeight:600, cursor:configurationReady?'pointer':'default', opacity:configurationReady?1:0.45, fontFamily:'var(--font-sans)' }}>
                 Skapa grupper
               </button>
             </div>
@@ -650,10 +445,17 @@ export function GroupsWindow() {
         {/* STEG: Resultat */}
         {activeStep === 'results' && (
           <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
+            {activeMode === 'size' && groups.some((group) => group.members.length + (group.leader ? 1 : 0) > resolvedGroupSize) && (
+              <div role="status">En grupp fick en extra elev så att ingen behöver vara ensam.</div>
+            )}
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+              <input aria-label="Namn på gruppindelning" placeholder="Namn på gruppindelning" value={saveName} onChange={(event) => setSaveName(event.target.value)} />
+              <button type="button" onClick={handleSave}>Spara gruppindelning</button>
+            </div>
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:8 }}>
               <div style={{ fontSize:15, fontWeight:600, color:'var(--text-primary)' }}>{groups.length} grupper · {names.length} elever</div>
               <div style={{ display:'flex', gap:6, flexWrap:'wrap' }}>
-                {([['Slumpa igen', handleReshuffle], [copyFeedback||'Kopiera', handleCopy], ['CSV', handleExportCSV], ['PDF', handleExportPDF]] as [string, ()=>void][]).map(([label, fn]) => (
+                {([['Slumpa igen', handleReshuffle], [copyFeedback||'Kopiera', handleCopy], ['PDF', handleExportPDF]] as [string, ()=>void][]).map(([label, fn]) => (
                   <button key={label} type="button" onClick={fn}
                     style={{ padding:'6px 14px', borderRadius:20, border:'1.5px solid var(--border-medium)', background:'transparent', fontSize:12, color:'var(--text-secondary)', cursor:'pointer', fontFamily:'var(--font-sans)' }}>
                     {label}
@@ -703,6 +505,25 @@ function parseNames(input: string): string[] {
     .split(/\r?\n/)
     .map((name) => name.trim())
     .filter(Boolean)
+}
+
+function normalizeGroupMode(mode: unknown): GroupMode {
+  return mode === 'groups' || mode === 'size' ? mode : null
+}
+
+function getMaxGroupCount(participantCount: number): number {
+  return Math.max(2, Math.min(10, Math.floor(participantCount / 2) || 2))
+}
+
+function getMaxGroupSize(participantCount: number): number {
+  return Math.max(2, Math.min(7, participantCount || 2))
+}
+
+function clampNumber(value: number | null, min: number, max: number, fallback: number): number {
+  if (!Number.isFinite(value)) {
+    return fallback
+  }
+  return Math.min(max, Math.max(min, Math.round(value ?? fallback)))
 }
 
 function buildGroups(
@@ -765,31 +586,7 @@ function formatGroupResults(groups: GroupResult[]): string {
     .join('\n')
 }
 
-function groupsToCSV(groups: GroupResult[]): string {
-  const rows = [['Grupp', 'Roll', 'Namn']]
-  groups.forEach((group, index) => {
-    const label = `Grupp ${index + 1}`
-    if (group.leader) {
-      rows.push([label, 'Ansvarig', group.leader])
-    }
-    group.members.forEach((member) => {
-      rows.push([label, 'Medlem', member])
-    })
-  })
-  return rows.map((row) => row.map((cell) => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n')
-}
 
-function downloadFile(filename: string, mime: string, content: string) {
-  const blob = new Blob([content], { type: mime })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  document.body.appendChild(link)
-  link.click()
-  link.remove()
-  URL.revokeObjectURL(url)
-}
 
 function timestamp() {
   const now = new Date()

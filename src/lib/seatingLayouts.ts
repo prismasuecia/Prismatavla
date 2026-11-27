@@ -276,7 +276,7 @@ export function generateBanquetLayout(seatCount: number): Seat[] {
 
 export function generateConferenceLayout(seatCount: number): Seat[] {
   const total = normalizeCount(seatCount)
-  const base = Math.max(2, Math.floor(total / 4))
+  const base = Math.floor(total / 4)
   const counts = [base, base, base, base]
   for (let index = 0; index < total % 4; index += 1) {
     counts[index] += 1
@@ -309,9 +309,9 @@ export function generateConferenceLayout(seatCount: number): Seat[] {
   }
 
   pushLine(counts[0], 'horizontal', bounds.top, bounds.left, bounds.right, false)
-  pushLine(counts[1], 'vertical', bounds.right, bounds.top, bounds.bottom, true)
-  pushLine(counts[2], 'horizontal', bounds.bottom, bounds.right, bounds.left, true)
-  pushLine(counts[3], 'vertical', bounds.left, bounds.bottom, bounds.top, true)
+  pushLine(counts[1], 'vertical', bounds.right, bounds.top, bounds.bottom, false)
+  pushLine(counts[2], 'horizontal', bounds.bottom, bounds.right, bounds.left, false)
+  pushLine(counts[3], 'vertical', bounds.left, bounds.bottom, bounds.top, false)
 
   return finalizeSeats(positions, total)
 }

@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware'
 import type { ModuleId } from '../modules/moduleTypes'
 import type { LayoutType, Seat, SeatAssignment, SeatingPlan } from '../lib/seatingLayouts'
 import { generateLayout, LAYOUT_LABELS } from '../lib/seatingLayouts'
+import { distinctStudentNames } from '../utils/students'
 
 export type { LayoutType, Seat, SeatAssignment, SeatingPlan } from '../lib/seatingLayouts'
 
@@ -38,6 +39,7 @@ interface TimerState {
 }
 
 interface InstructionState {
+  savedCards?: { id: string; name: string; text: string }[]
   text: string
   locked: boolean
 }
@@ -89,6 +91,7 @@ interface RandomizerState {
 }
 
 export interface LessonPhase {
+  description?: string
   id: string
   name: string
   minutes: number
@@ -97,12 +100,15 @@ export interface LessonPhase {
 }
 
 interface LessonPlanState {
+  status?: 'ready' | 'running' | 'paused' | 'finished'
+  goal?: string
   phases: LessonPhase[]
   activePhaseId?: string
   showProgress: boolean
 }
 
 interface LessonPhasePatch {
+  description?: string
   name?: string
   minutes?: number
   targetModuleId?: ModuleId
@@ -179,16 +185,16 @@ const makeId = () =>
 
 export const DEFAULT_SIZES: Record<ModuleId, { width: number; height: number }> = {
   background: { width: 560, height: 460 },
-  timer: { width: 400, height: 420 },
+  timer: { width: 560, height: 740 },
   turntaking: { width: 760, height: 580 },
   groups: { width: 680, height: 740 },
   instructioncards: { width: 480, height: 520 },
-  trafficlight: { width: 380, height: 340 },
+  trafficlight: { width: 500, height: 620 },
   randomizer: { width: 380, height: 360 },
   clock: { width: 360, height: 320 },
-  seating: { width: 600, height: 560 },
+  seating: { width: 900, height: 680 },
   lessonplan: { width: 540, height: 520 },
-  exitticket: { width: 420, height: 420 },
+  exitticket: { width: 560, height: 620 },
   soundmeter: { width: 420, height: 360 },
 }
 
@@ -208,7 +214,7 @@ const noopStorage: Storage = {
 }
 
 const resolveStorage = () => (typeof window === 'undefined' ? noopStorage : window.localStorage)
-const MAX_OPEN_MODULES = 3
+const WINDOW_STACK_STEPS = 5
 const FALLBACK_VIEWPORT = { width: 1280, height: 720 }
 
 const DEFAULT_POSITIONS: Record<ModuleId, { x: number; y: number }> = {
@@ -273,7 +279,7 @@ const clampSize = (size: { width: number; height: number }) => {
   }
 
   const maxWidth = Math.max(MIN_MODULE_WIDTH, Math.floor(window.innerWidth * 0.9))
-  const maxHeight = Math.max(MIN_MODULE_HEIGHT, Math.floor(window.innerHeight * 0.9))
+  const maxHeight = Math.max(MIN_MODULE_HEIGHT, window.innerHeight - 184)
 
   return {
     width: Math.min(width, maxWidth),
@@ -286,10 +292,10 @@ const clampPosition = (position: { x: number; y: number }, size?: { width: numbe
   const moduleWidth = size?.width ?? MIN_MODULE_WIDTH
   const moduleHeight = size?.height ?? MIN_MODULE_HEIGHT
   const maxX = window.innerWidth - moduleWidth - 24
-  const maxY = window.innerHeight - moduleHeight - 24
+  const maxY = window.innerHeight - moduleHeight - 96
   return {
     x: Math.min(Math.max(24, position.x), Math.max(24, maxX)),
-    y: Math.min(Math.max(24, position.y), Math.max(24, maxY)),
+    y: Math.min(Math.max(84, position.y), Math.max(84, maxY)),
   }
 }
 
@@ -300,19 +306,7 @@ const clampLessonMinutes = (minutes?: number) => {
   return Math.min(180, Math.max(1, Math.round(minutes)))
 }
 
-const clampSeatingColumns = (columns?: number) => {
-  if (typeof columns !== 'number' || Number.isNaN(columns)) {
-    return DEFAULT_SEATING_COLUMNS
-  }
-  return Math.min(MAX_SEATING_COLUMNS, Math.max(MIN_SEATING_COLUMNS, Math.round(columns)))
-}
 
-const clampSeatingRows = (rows?: number) => {
-  if (typeof rows !== 'number' || Number.isNaN(rows)) {
-    return DEFAULT_SEATING_ROWS
-  }
-  return Math.min(MAX_SEATING_ROWS, Math.max(MIN_SEATING_ROWS, Math.round(rows)))
-}
 
 const getViewportSize = () =>
   typeof window === 'undefined'
@@ -327,7 +321,7 @@ const getCenteredPosition = (size: { width: number; height: number }) => {
 }
 
 const getStackedPosition = (size: { width: number; height: number }, stackIndex: number) => {
-  const offset = Math.min(Math.max(stackIndex, 0), MAX_OPEN_MODULES - 1) * 60
+  const offset = (Math.max(stackIndex, 0) % WINDOW_STACK_STEPS) * 60
   const centered = getCenteredPosition(size)
   return clampPosition({ x: centered.x + offset, y: centered.y + offset }, size)
 }
@@ -360,11 +354,6 @@ const getNextActiveModuleId = (windows: ModuleWindowLayout[]) => {
   const pool = visible.length ? visible : windows
   return pool.reduce((top, current) => (current.zIndex > top.zIndex ? current : top)).moduleId
 }
-
-const getWindowList = (state: ModuleWindowsState) =>
-  state.openModuleIds
-    .map((moduleId) => state.windowsById[moduleId])
-    .filter((window): window is ModuleWindowLayout => Boolean(window))
 
 type LegacyModuleWindow = {
   id: string
@@ -449,6 +438,7 @@ const shuffle = <T,>(arr: T[]) => {
 }
 
 const createLessonPhase = (overrides?: Partial<LessonPhase>): LessonPhase => ({
+  description: overrides?.description,
   id: overrides?.id ?? makeId(),
   name: overrides?.name ?? 'Ny fas',
   minutes: clampLessonMinutes(overrides?.minutes ?? 5),
@@ -653,13 +643,14 @@ const patchSeatingPlan = (plan: SeatingPlan, patch: Partial<SeatingPlan>): Seati
 }
 
 const autoAssignPlan = (plan: SeatingPlan, students: string[]): SeatingPlan => {
+  students = distinctStudentNames(students)
   const locked = new Set(plan.lockedSeatIds)
   const lockedStudents = new Set(
     plan.assignments
       .filter((assignment) => locked.has(assignment.seatId) && assignment.studentId)
       .map((assignment) => assignment.studentId as string),
   )
-  const queue = students.filter((student) => !lockedStudents.has(student))
+  const queue = shuffle(students.filter((student) => !lockedStudents.has(student)))
   const assignments = plan.assignments.map((assignment) => {
     if (locked.has(assignment.seatId)) {
       return assignment
@@ -685,7 +676,7 @@ const shufflePlanAssignments = (plan: SeatingPlan): SeatingPlan => {
   const unlockedAssignments = plan.assignments.filter((assignment) => !locked.has(assignment.seatId) && assignment.studentId)
   const pool = shuffle(unlockedAssignments.map((assignment) => assignment.studentId as string))
   const assignments = plan.assignments.map((assignment) => {
-    if (locked.has(assignment.seatId)) {
+    if (locked.has(assignment.seatId) || !assignment.studentId) {
       return assignment
     }
     return {
@@ -702,12 +693,16 @@ const shufflePlanAssignments = (plan: SeatingPlan): SeatingPlan => {
 
 const assignStudentToSeat = (plan: SeatingPlan, seatId: string, studentId: string | null): SeatingPlan => {
   const normalizedId = studentId?.trim() || null
+  const target = plan.assignments.find((item) => item.seatId === seatId)
+  const source = normalizedId ? plan.assignments.find((item) => item.studentId === normalizedId) : undefined
+  if (!target || plan.lockedSeatIds.includes(seatId) ||
+    (source && plan.lockedSeatIds.includes(source.seatId))) return plan
   const assignments = plan.assignments.map((assignment) => {
     if (assignment.seatId === seatId) {
       return { ...assignment, studentId: normalizedId }
     }
     if (normalizedId && assignment.studentId === normalizedId) {
-      return { ...assignment, studentId: null }
+      return { ...assignment, studentId: target.studentId }
     }
     return assignment
   })
@@ -846,7 +841,6 @@ const buildQueue = (students: string[], mode: TurnMode) =>
 
 interface BoardActions {
   setTheme: (theme: ThemeId) => void
-  toggleProjector: () => void
   openModule: (moduleId: ModuleId) => void
   closeModule: (moduleId: ModuleId) => void
   minimizeModule: (moduleId: ModuleId) => void
@@ -914,8 +908,8 @@ interface BoardActions {
 }
 
 interface BoardState {
+  trafficDescriptions?: Partial<Record<TrafficNorm, string>>
   theme: ThemeId
-  projectorMode: boolean
   moduleWindows: ModuleWindowsState
   traffic: TrafficNorm
   timer: TimerState
@@ -948,7 +942,6 @@ const initialClassLists: ClassListState = {
 
 const initialState: Omit<BoardState, 'actions'> = {
   theme: 'aurora',
-  projectorMode: false,
   moduleWindows: {
     openModuleIds: [],
     windowsById: {},
@@ -993,7 +986,6 @@ export const useBoardStore = create<BoardState>()(
       ...initialState,
       actions: {
         setTheme: (theme) => set({ theme }),
-        toggleProjector: () => set((state) => ({ projectorMode: !state.projectorMode })),
         openModule: (moduleId) =>
           set((state) => {
             const moduleWindows = state.moduleWindows
@@ -1002,6 +994,10 @@ export const useBoardStore = create<BoardState>()(
             if (existing) {
               const updated = ensureWindowLayout(moduleId, {
                 ...existing,
+                size: {
+                  width: Math.max(existing.size.width, DEFAULT_SIZES[moduleId].width),
+                  height: Math.max(existing.size.height, DEFAULT_SIZES[moduleId].height),
+                },
                 minimized: false,
                 fullscreen: false,
                 lastActive: Date.now(),
@@ -1023,15 +1019,6 @@ export const useBoardStore = create<BoardState>()(
             }
 
             let openModuleIds = [...moduleWindows.openModuleIds]
-            const openWindows = getWindowList(moduleWindows)
-            if (openWindows.length >= MAX_OPEN_MODULES) {
-              const sorted = [...openWindows].sort((a, b) => a.lastActive - b.lastActive)
-              const removed = sorted[0]
-              if (removed) {
-                delete windowsById[removed.moduleId]
-                openModuleIds = openModuleIds.filter((id) => id !== removed.moduleId)
-              }
-            }
 
             const size = getDefaultSize(moduleId)
             const stackIndex = openModuleIds.length
@@ -1654,6 +1641,7 @@ export const useBoardStore = create<BoardState>()(
               }
               return {
                 ...phase,
+                description: patch.description ?? phase.description,
                 name: patch.name ?? phase.name,
                 minutes:
                   patch.minutes !== undefined ? clampLessonMinutes(patch.minutes) : phase.minutes,
@@ -2060,7 +2048,7 @@ export const useBoardStore = create<BoardState>()(
           return persistedState
         }
 
-        let migrated = persistedState as BoardState
+        let migrated = persistedState as BoardState & { modules?: LegacyModuleWindow[]; activeModuleId?: string }
 
         if (version < 3) {
           const modules = (migrated.modules ?? []).map((module) => ensureLegacyModuleGeometry(module))
@@ -2224,30 +2212,7 @@ export const useBoardStore = create<BoardState>()(
           }
         }
 
-        if (version < 10) {
-          const existingSeating = (migrated as Partial<BoardState>).seating
-          if (!existingSeating || !Array.isArray(existingSeating.seats) || !existingSeating.seats.length) {
-            migrated = {
-              ...migrated,
-              seating: createSeatingState(),
-            }
-          } else {
-            const safeRows = clampSeatingRows(existingSeating.rows)
-            const safeColumns = clampSeatingColumns(existingSeating.columns)
-            const students = existingSeating.seats
-              .map((seat) => seat?.student)
-              .filter((name): name is string => Boolean(name))
-            migrated = {
-              ...migrated,
-              seating: {
-                rows: safeRows,
-                columns: safeColumns,
-                seats: createSeatGrid(safeRows, safeColumns, students),
-                lastUpdated: Date.now(),
-              },
-            }
-          }
-        }
+        // Legacy seating is converted directly by the version 13 migration below.
 
         if (version < 11) {
           const existingExitTicket = (migrated as Partial<BoardState>).exitTicket
