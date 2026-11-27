@@ -10,25 +10,31 @@ const setup = () => {
   const sent = []
   const env = { ALLOWED_ORIGINS: origin, FEEDBACK_TO: 'private-recipient@example.test', FEEDBACK_FROM: 'sender@example.test',
     FEEDBACK_LIMITER: { limit: async () => ({ success: true }) },
-    FEEDBACK_MAILER: { send: async (message) => { sent.push(message); return { messageId: 'test-message' } } },
+    RESEND_API_KEY: 'test-key',
   }
-  return { env, sent }
+  const sendRequest = async (url, options) => {
+    assert.equal(url, 'https://api.resend.com/emails')
+    assert.equal(options.headers.Authorization, 'Bearer test-key')
+    sent.push(JSON.parse(options.body))
+    return Response.json({ id: 'test-message' })
+  }
+  return { env, sent, sendRequest }
 }
 
 test('sends to server recipient only; recipient never appears in response', async () => {
-  const { env, sent } = setup()
-  const response = await handleFeedback(request({ message: '  Hej  ', email: 'teacher@example.test', to: 'attacker@example.test' }), env)
+  const { env, sent, sendRequest } = setup()
+  const response = await handleFeedback(request({ message: '  Hej  ', email: 'teacher@example.test', to: 'attacker@example.test' }), env, sendRequest)
   assert.equal(response.status, 200)
   assert.deepEqual(await response.json(), { sent: true })
   assert.equal(sent.length, 1)
-  assert.equal(sent[0].to, env.FEEDBACK_TO)
+  assert.deepEqual(sent[0].to, [env.FEEDBACK_TO])
   assert.equal(sent[0].text, 'Hej')
-  assert.equal(sent[0].replyTo, 'teacher@example.test')
+  assert.equal(sent[0].reply_to, 'teacher@example.test')
 })
 test('optional reply address may be omitted', async () => {
-  const { env, sent } = setup()
-  assert.equal((await handleFeedback(request(), env)).status, 200)
-  assert.equal(sent[0].replyTo, undefined)
+  const { env, sent, sendRequest } = setup()
+  assert.equal((await handleFeedback(request(), env, sendRequest)).status, 200)
+  assert.equal(sent[0].reply_to, undefined)
 })
 test('rejects invalid messages, header injection, bots and oversized bodies', async () => {
   const { env, sent } = setup()
@@ -41,14 +47,19 @@ test('rejects invalid messages, header injection, bots and oversized bodies', as
 test('fails closed for unknown origins, missing service and rate limiting', async () => {
   const { env, sent } = setup()
   assert.equal((await handleFeedback(request(undefined, { Origin: 'https://attacker.test' }), env)).status, 403)
-  assert.equal((await handleFeedback(request(), { ...env, FEEDBACK_MAILER: null })).status, 503)
+  assert.equal((await handleFeedback(request(), { ...env, RESEND_API_KEY: null })).status, 503)
   assert.equal((await handleFeedback(request(), { ...env, FEEDBACK_LIMITER: { limit: async () => ({ success: false }) } })).status, 429)
   assert.equal(sent.length, 0)
 })
 test('provider failures never produce a success message or disclose details', async () => {
   const { env } = setup()
-  env.FEEDBACK_MAILER.send = async () => { throw new Error('private-recipient@example.test') }
-  const response = await handleFeedback(request(), env)
+  const response = await handleFeedback(request(), env, async () => { throw new Error('private-recipient@example.test') })
   assert.equal(response.status, 502)
   assert.ok(!(await response.text()).includes(env.FEEDBACK_TO))
+})
+test('provider rejection or missing confirmation never counts as sent', async () => {
+  const { env } = setup()
+  for (const response of [Response.json({ error: 'private details' }, { status: 403 }), Response.json({}), new Response('not JSON')]) {
+    assert.equal((await handleFeedback(request(), env, async () => response)).status, 502)
+  }
 })

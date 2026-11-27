@@ -1,4 +1,4 @@
-export async function handleFeedback(request, env) {
+export async function handleFeedback(request, env, sendRequest = fetch) {
   const origin = request.headers.get('Origin')
   const allowed = (env.ALLOWED_ORIGINS ?? '').split(',').map((s) => s.trim())
   const headers = { 'Cache-Control': 'no-store', Vary: 'Origin' }
@@ -8,7 +8,7 @@ export async function handleFeedback(request, env) {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers })
   if (request.method !== 'POST') return reply({ error: 'Method not allowed' }, 405)
   if (!request.headers.get('Content-Type')?.startsWith('application/json')) return reply({ error: 'JSON required' }, 415)
-  if (!env.FEEDBACK_LIMITER || !env.FEEDBACK_MAILER || !env.FEEDBACK_TO || !env.FEEDBACK_FROM) return reply({ error: 'Feedback unavailable' }, 503)
+  if (!env.FEEDBACK_LIMITER || !env.RESEND_API_KEY || !env.FEEDBACK_TO || !env.FEEDBACK_FROM) return reply({ error: 'Feedback unavailable' }, 503)
   const limit = await env.FEEDBACK_LIMITER.limit({ key: request.headers.get('CF-Connecting-IP') ?? 'unknown' })
   if (!limit.success) return reply({ error: 'Try later' }, 429)
   // Bound the stream before decoding to avoid allocating an arbitrary request body.
@@ -32,13 +32,20 @@ export async function handleFeedback(request, env) {
   const email = (input.email ?? '').trim()
   if (email && (email.length > 254 || !/^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email))) return reply({ error: 'Invalid email' }, 400)
   try {
-    const result = await env.FEEDBACK_MAILER.send({
-      from: env.FEEDBACK_FROM, to: env.FEEDBACK_TO,
-      subject: 'Feedback från Prisma Tavla',
-      text: input.message.trim(),
-      ...(email ? { replyTo: email } : {}),
+    const response = await sendRequest('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(10000),
+      body: JSON.stringify({
+        from: env.FEEDBACK_FROM, to: [env.FEEDBACK_TO],
+        subject: 'Feedback från Prisma Tavla',
+        text: input.message.trim(),
+        ...(email ? { reply_to: email } : {}),
+      }),
     })
-    if (!result?.messageId) return reply({ error: 'Delivery not confirmed' }, 502)
+    if (!response.ok) return reply({ error: 'Sending failed' }, 502)
+    const result = await response.json()
+    if (!result?.id) return reply({ error: 'Delivery not confirmed' }, 502)
     return reply({ sent: true })
   } catch { return reply({ error: 'Sending failed' }, 502) }
 }

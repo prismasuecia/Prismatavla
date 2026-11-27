@@ -10,5 +10,9 @@
     "name": "TOKEN_LIMITER",
     "namespace_id": "1001",
     "simple": { "limit": 120, "period": 60 }
+  }, {
+    "name": "FEEDBACK_LIMITER",
+    "namespace_id": "1002",
+    "simple": { "limit": 6, "period": 60 }
   }]
 }

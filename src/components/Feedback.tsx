@@ -53,7 +53,7 @@ export function Feedback() {
         <label htmlFor="feedback-email">Din e-post <span>(frivilligt, om du vill ha svar)</span></label>
         <input id="feedback-email" type="email" autoComplete="email" maxLength={254} value={email} disabled={status === 'sending'} onChange={(event) => setEmail(event.target.value)} />
         <div className="feedback-trap" aria-hidden="true"><label htmlFor="feedback-website">Webbplats</label><input id="feedback-website" tabIndex={-1} autoComplete="off" value={website} onChange={(event) => setWebsite(event.target.value)} /></div>
-        <p className="feedback-processing">Meddelandet och eventuell e-postadress skickas till Prisma Tavlas ansvarige via Cloudflares e-posttjänst.</p>
+        <p className="feedback-processing">Meddelandet och eventuell e-postadress skickas till Prisma Tavlas ansvarige via Cloudflare och Resend.</p>
         {status === 'error' && <p role="alert">{error}</p>}
         <footer><button type="button" disabled={status === 'sending'} onClick={() => dialog.current?.close()}>Avbryt</button><button type="submit" className="feedback-submit" disabled={status === 'sending'}><Send size={17} aria-hidden="true" />{status === 'sending' ? 'Skickar…' : 'Skicka feedback'}</button></footer>
       </form>}

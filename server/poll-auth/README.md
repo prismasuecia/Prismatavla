@@ -1,13 +1,12 @@
 # Omrostning: hemlig nyckel pa servern
 
-## Feedback - forberett men inte aktiverat
+## Feedback - Resend
 
-`/feedback` anvander Cloudflare Email Service och fungerar forst efter:
+`/feedback` anvander Resend via Cloudflare Worker och fungerar forst efter:
 
-- Verifiera mottagaradressen i Cloudflare Destination Addresses.
-- Registrera en separat avsandarsubdoman hos Email Service och verifiera dess
-  DNS-poster. Andra INTE huvuddom anens MX-poster eller ordinarie e-post.
-- Bind `FEEDBACK_MAILER` som send_email, helst begransad till mottagaren.
+- Verifiera en separat avsandarsubdoman hos Resend genom DNS-poster hos One.com.
+  Andra INTE huvuddomannens MX-poster eller ordinarie e-post.
+- Spara `RESEND_API_KEY` som serverhemlighet med Sending access for underdomanen.
 - Spara `FEEDBACK_TO` och `FEEDBACK_FROM` som serverhemligheter. Mottagaren
   ska aldrig laggas i frontend, Wrangler-filen eller publikt repository.
 - Bind `FEEDBACK_LIMITER` (namespace 1002, limit 6, period 60).
@@ -21,7 +20,7 @@ honeypot och rate limit ar grundskydd, inte fullstandigt botskydd.
 
 Tester: `node --test server/poll-auth/*.test.mjs`.
 
-Dokumentation: https://developers.cloudflare.com/email-service/api/send-emails/workers-api/
+Dokumentation: https://resend.com/docs/api-reference/emails/send-email
 
 Status 2026-11-27: Worker driftsatt, ny ABLY_API_KEY sparad som Secret och
 gammal Root-nyckel sparrad av kontoagaren. Signerad biljett accepterades av
